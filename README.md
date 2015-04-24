@@ -5,7 +5,9 @@ test rest service by json self.
 usage
 ---
 > put json test files in pacts_dir
-> java -jar pact.jar pacts_dir webservice_url
+```
+java -jar pact.jar pacts_dir webservice_url
+```
 
 Example directory:
 project
