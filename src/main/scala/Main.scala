@@ -52,8 +52,7 @@ object Main extends App {
   } else args(1)
   //一个文件夹 - Pacts - TestSuites
   //一个文件 - Pact - TestSuite
-  val now = new org.joda.time.DateTime().toString("yyyyMMDD_HH_mm")
-  val reportDirPath = s"$root${File.separator}report_$now"
+  val reportDirPath = s"$root${File.separator}report"
   val pactDir = new File(s"$root${File.separator}pacts")
   if (!pactDir.exists()) {
     println(s"${pactDir.getAbsolutePath} do not exists.")
