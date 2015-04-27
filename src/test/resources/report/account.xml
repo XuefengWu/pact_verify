@@ -1,26 +1,11 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuites disabled=" " errors="0" failures="2" name="account" tests=" " time="0">
-      <testsuite disabled=" " errors="0" failures="2" hostname=" " id=" " name="login Service" package=" " skipped=" " tests=" " time="0" timestamp="1430124959382">
-      <testcase assertions=" " classname="login" name="login" status=" " time="0">
-      
-    </testcase><testcase assertions=" " classname="create with validate user" name="create with validate user" status=" " time="0">
-      <failure type="Bad Request">
-      Status: 200 != 400 
-{&quot;errorCode&quot;:&quot;userExist&quot;,&quot;messages&quot;:[&quot;username_xx已经存在&quot;]}
-    </failure>
-    </testcase><testcase assertions=" " classname="get user company roles" name="get user company roles" status=" " time="0">
-      
-    </testcase><testcase assertions=" " classname="update user company roles" name="update user company roles" status=" " time="0">
+<testsuites disabled=" " errors="0" failures="1" name="account" tests=" " time="0">
+      <testsuite disabled=" " errors="0" failures="1" hostname=" " id=" " name="login Service" package=" " skipped=" " tests=" " time="0" timestamp="1430146161988">
+      <testcase assertions=" " classname="login baidu" name="login baidu" status=" " time="0">
       <failure type="OK">
-      期望:{&quot;user&quot;:&quot;wu&quot;}
- 实际返回:1
+      期望:{}
+ 实际返回:{&quot;errNo&quot;:&quot;403&quot;,&quot;reward&quot;:[],&quot;grade&quot;:{&quot;grade&quot; : &quot;&quot;,&quot;newprivilege&quot; : &quot;&quot;},&quot;level&quot;: &quot;&quot;,&quot;guide&quot;: &quot;&quot;,&quot;test&quot;:&quot;&quot;,&quot;msgs&quot;:[]}
     </failure>
-    </testcase><testcase assertions=" " classname="list all resources" name="list all resources" status=" " time="0">
-      
-    </testcase><testcase assertions=" " classname="list all resources for a role" name="list all resources for a role" status=" " time="0">
-      
-    </testcase><testcase assertions=" " classname="change password" name="change password" status=" " time="0">
-      
     </testcase>
     </testsuite>
     </testsuites>

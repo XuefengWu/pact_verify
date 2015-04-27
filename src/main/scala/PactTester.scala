@@ -25,10 +25,10 @@ object PactTester {
         val request = rebuildRequest(interaction.request, responseOpt)
 
         //cookies
-        if(responseOpt.isDefined) {
+        if (responseOpt.isDefined) {
           val response = responseOpt.get
           val cookies: Seq[String] = response.cookies.filter(_.value.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
-          if(cookies.size > 0) {
+          if (cookies.size > 0) {
             cookiesOpt = cookiesOpt.fold(Some(cookies))(c => Some((c ++: cookies).distinct))
           }
         }
@@ -92,7 +92,9 @@ object PactTester {
     val asserts = expect.asInstanceOf[JsObject].fields.map { case (field, value) =>
       value == actual \ field
     }
-    asserts.reduce(_ && _)
+    if (!asserts.isEmpty) {
+      asserts.reduce(_ && _)
+    } else false
   }
 
   private def isEqualArray(expect: JsArray, actual: JsArray): Boolean = {
