@@ -15,8 +15,9 @@ class PactWS(urlRoot: String) {
 
   private def fullUrlJson(path: String, contentType: Option[String], cookies: Option[String]) = fullUrl(path, cookies).withHeaders("Content-Type" -> contentType.getOrElse("application/json"))
 
-  private def chooseRequest(path: String, input: String, method: String, contentType: Option[String], cookies: Option[String]) = method.toLowerCase() match {
+  private def chooseRequest(path: String, input: String, method: String, contentType: Option[String], cookies: Option[String], form: Option[String]) = method.toLowerCase() match {
     case "get" => fullUrl(path,cookies).get()
+    case "post" if form.isDefined => fullUrlJson(path, Some("application/x-www-form-urlencoded"), cookies).post(form.get)
     case "post" => fullUrlJson(path, contentType,cookies).post(input)
     case "put" => fullUrlJson(path, contentType,cookies).put(input)
     case "delete" => fullUrl(path,cookies).delete()
@@ -32,7 +33,7 @@ class PactWS(urlRoot: String) {
   }
 
   def send(request: PactRequest): Future[WSResponse] = {
-    chooseRequest(request.path, buildRequestBody(request), request.method.toString(), request.contentType, request.cookies)
+    chooseRequest(request.path, buildRequestBody(request), request.method.toString(), request.contentType, request.cookies, request.form)
   }
 
   def close(): Unit = {

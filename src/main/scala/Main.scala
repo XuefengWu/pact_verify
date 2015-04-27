@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, _}
 import scala.concurrent.{Await, Future}
 
-case class PactRequest(method: String, path: String, contentType: Option[String], body: Option[JsValue], cookies: Option[String])
+case class PactRequest(method: String, path: String, contentType: Option[String], body: Option[JsValue], cookies: Option[String], form: Option[String])
 
 case class PactResponse(status: Int, body: Option[JsValue])
 
