@@ -13,7 +13,7 @@ object PactFile {
 
   def loadPacts(dir: File): List[Pacts] = {
     val (subDirs, files) = listFiles(dir).partition(_.isDirectory)
-    val pacts: Seq[Pact] = files.map(f => Source.fromFile(f).getLines().mkString("\n")).map(parsePact)
+    val pacts: Seq[Pact] = files.filter(_.getName.endsWith(".json")).map(f => Source.fromFile(f).getLines().mkString("\n")).map(parsePact)
     val subPacts: List[Pacts] = subDirs.flatMap(subDir => loadPacts(subDir)).toList
     if (pacts.isEmpty) {
       subPacts

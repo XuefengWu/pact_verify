@@ -3,6 +3,7 @@ import play.api.libs.ws.WSResponse
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.Try
 
 object PactTester {
 
@@ -12,8 +13,8 @@ object PactTester {
     val startPact = System.currentTimeMillis()
     val pactWS = new PactWS(urlRoot)
 
-    var response: Option[JsValue] = None
-
+    var responseOpt: Option[WSResponse] = None
+    var cookiesOpt: Option[Seq[String]] = None
     val result: Seq[TestCase] = for {
       i <- 1 to pact.repeat.getOrElse(1)
       interaction <- pact.interactions
@@ -21,8 +22,18 @@ object PactTester {
         val start = System.currentTimeMillis()
 
         //TODO: 创建参数，参数的连续使用
-        val request = rebuildRequest(interaction.request, response)
-        val responseF = pactWS.send(request)
+        val request = rebuildRequest(interaction.request, responseOpt)
+
+        //cookies
+        if(responseOpt.isDefined) {
+          val response = responseOpt.get
+          val cookies: Seq[String] = response.cookies.filter(_.value.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
+          if(cookies.size > 0) {
+            cookiesOpt = cookiesOpt.fold(Some(cookies))(c => Some((c ++: cookies).distinct))
+          }
+        }
+
+        val responseF = pactWS.send(request.copy(cookies = cookiesOpt.map(_.mkString(";"))))
         val actual: WSResponse = Await.result(responseF, Duration(30, SECONDS))
         val expect: PactResponse = interaction.response
         val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
@@ -30,9 +41,9 @@ object PactTester {
         val spend = (System.currentTimeMillis() - start) / 1000
 
         if (actual.status < 300) {
-          response = Some(Json.parse(actual.body))
+          responseOpt = Some(actual)
         } else {
-          response = None
+          responseOpt = None
         }
         TestCase("assertions", interaction.description, interaction.description, "status", spend.toString, error, failure)
       }
@@ -45,21 +56,26 @@ object PactTester {
 
   }
 
-  private def rebuildRequest(request: PactRequest, responseOpt: Option[JsValue]): PactRequest = {
-    val body = request.body
-    if (body.isDefined && responseOpt.isDefined) {
+  private def rebuildRequest(request: PactRequest, responseOpt: Option[WSResponse]): PactRequest = {
+
+    if (responseOpt.isDefined) {
       val response = responseOpt.get
-      var requestBuf = request.body.get.toString()
+      //parameters
+      val body = request.body
+      var requestBufOpt = body.map(_.toString())
       var url = request.path
-      PlaceHolderR.findAllMatchIn(request.body.get.toString()).map { m => m.group(1) }.foreach { placeId =>
-        val placeJsValue = (response \ placeId)
-        if (!placeJsValue.isInstanceOf[JsUndefined]) {
-          val placeValue = placeJsValue.toString().drop(1).dropRight(1)
-          requestBuf = requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue)
-          url = url.replaceAll("\\$" + placeId + "\\$", placeValue)
+      if (request.body.isDefined && Try(Json.parse(response.body)).isSuccess) {
+        PlaceHolderR.findAllMatchIn(request.body.get.toString()).map { m => m.group(1) }.foreach { placeId =>
+          val placeJsValue = (Json.parse(response.body) \ placeId)
+          if (!placeJsValue.isInstanceOf[JsUndefined]) {
+            val placeValue = placeJsValue.toString().drop(1).dropRight(1)
+            requestBufOpt = requestBufOpt.map(requestBuf => requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue))
+            url = url.replaceAll("\\$" + placeId + "\\$", placeValue)
+          }
         }
       }
-      request.copy(path = url, body = Some(Json.parse(requestBuf)))
+
+      request.copy(path = url, body = requestBufOpt.map(requestBuf => Json.parse(requestBuf)))
     } else request
   }
 
