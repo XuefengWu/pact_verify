@@ -13,7 +13,7 @@ resolvers += Resolver.url("Typesafe Ivy Snapshots Repository", url("https://repo
 
 
 libraryDependencies ++= Seq(
-  ("com.typesafe.play" %% "play-ws" % "2.4.0-M3").exclude("commons-logging", "commons-logging"),
-  "com.typesafe.play" %% "play-json" % "2.4.0-M3",
+  ("com.typesafe.play" %% "play-ws" % "2.3.1").exclude("commons-logging", "commons-logging").exclude("com.typesafe.play","build-link"),
+  ("com.typesafe.play" %% "play-json" % "2.3.1").exclude("com.typesafe.play","build-link"),
   ("org.scala-lang.modules" %% "scala-xml" % "1.0.3").exclude("commons-logging", "commons-logging")
 )
