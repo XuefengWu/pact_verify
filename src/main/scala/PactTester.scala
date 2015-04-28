@@ -64,15 +64,25 @@ object PactTester {
       val body = request.body
       var requestBufOpt = body.map(_.toString())
       var url = request.path
-      if (request.body.isDefined && Try(Json.parse(response.body)).isSuccess) {
-        PlaceHolderR.findAllMatchIn(request.body.get.toString()).map { m => m.group(1) }.foreach { placeId =>
+      if (Try(Json.parse(response.body)).isSuccess) {
+        if (request.body.isDefined) {
+          PlaceHolderR.findAllMatchIn(request.body.get.toString()).map { m => m.group(1) }.foreach { placeId =>
+            val placeJsValue = (Json.parse(response.body) \ placeId)
+            if (!placeJsValue.isInstanceOf[JsUndefined]) {
+              val placeValue = placeJsValue.toString().drop(1).dropRight(1)
+              requestBufOpt = requestBufOpt.map(requestBuf => requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue))
+            }
+          }
+        }
+
+        PlaceHolderR.findAllMatchIn(request.path).map { m => m.group(1) }.foreach { placeId =>
           val placeJsValue = (Json.parse(response.body) \ placeId)
           if (!placeJsValue.isInstanceOf[JsUndefined]) {
             val placeValue = placeJsValue.toString().drop(1).dropRight(1)
-            requestBufOpt = requestBufOpt.map(requestBuf => requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue))
             url = url.replaceAll("\\$" + placeId + "\\$", placeValue)
           }
         }
+
       }
 
       request.copy(path = url, body = requestBufOpt.map(requestBuf => Json.parse(requestBuf)))
