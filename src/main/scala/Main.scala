@@ -35,7 +35,7 @@ case class TestSuites(disabled: String, errors: Int, failures: Int, name: String
 
 object Main extends App {
 
-  println("welcome play pact v0.3.0")
+  println("welcome play pact v0.3.1")
 
   val root = if (args.length < 1) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")

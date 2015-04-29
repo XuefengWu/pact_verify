@@ -8,6 +8,7 @@ import scala.util.Try
 object PactTester {
 
   private val PlaceHolderR = """"\$([a-zA-Z]+)\$"""".r
+  private val PlaceHolderWithoutQuoR = """\$([a-zA-Z]+)\$""".r
 
   private def testPact(urlRoot: String, pact: Pact): TestSuite = {
     val startPact = System.currentTimeMillis()
@@ -75,7 +76,7 @@ object PactTester {
           }
         }
 
-        PlaceHolderR.findAllMatchIn(request.path).map { m => m.group(1) }.foreach { placeId =>
+        PlaceHolderWithoutQuoR.findAllMatchIn(request.path).map { m => m.group(1) }.foreach { placeId =>
           val placeJsValue = (Json.parse(response.body) \ placeId)
           if (!placeJsValue.isInstanceOf[JsUndefined]) {
             val placeValue = placeJsValue.toString().drop(1).dropRight(1)
