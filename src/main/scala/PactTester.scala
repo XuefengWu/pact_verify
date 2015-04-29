@@ -22,7 +22,7 @@ object PactTester {
         val start = System.currentTimeMillis()
 
         //TODO: 创建参数，参数的连续使用
-        val request = rebuildRequest(interaction.request, responseOpt)
+        val request: PactRequest = rebuildRequest(interaction.request, responseOpt)
 
         //cookies
         if (responseOpt.isDefined) {
@@ -37,7 +37,7 @@ object PactTester {
         val actual: WSResponse = Await.result(responseF, Duration(30, SECONDS))
         val expect: PactResponse = interaction.response
         val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
-        val failure = assert(expect, actual)
+        val failure = assert(request, expect, actual)
         val spend = (System.currentTimeMillis() - start) / 1000
 
         if (actual.status < 300) {
@@ -89,10 +89,10 @@ object PactTester {
     } else request
   }
 
-  private def assert(expect: PactResponse, actual: WSResponse): Option[Failure] = {
+  private def assert(request: PactRequest, expect: PactResponse, actual: WSResponse): Option[Failure] = {
     actual match {
-      case _ if expect.status != actual.status => Some(Failure(actual.statusText, s"Status: ${expect.status} != ${actual.status} \n${actual.body}"))
-      case _ if expect.body.isDefined && !isEqual(expect.body.get, Json.parse(actual.body)) => Some(Failure(actual.statusText, s"期望:${expect.body.get}\n 实际返回:${actual.body}"))
+      case _ if expect.status != actual.status => Some(Failure(actual.statusText, s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"))
+      case _ if expect.body.isDefined && !isEqual(expect.body.get, Json.parse(actual.body)) => Some(Failure(actual.statusText, s"期望:${expect.body.get}\n 实际返回:${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"))
       case _ => None
     }
 

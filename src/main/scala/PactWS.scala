@@ -11,16 +11,23 @@ class PactWS(urlRoot: String) {
   val builder = new NingAsyncHttpClientConfigBuilder(parser.parse())
   implicit val sslClient = new play.api.libs.ws.ning.NingWSClient(builder.build())
 
-  private def fullUrl(path: String, cookies: Option[String]) = WS.clientUrl(urlRoot + path).withHeaders("Cookie" -> cookies.getOrElse(""))
+  private def fullUrl(path: String, cookies: Option[String]) = {
+    val requestHolder: WSRequestHolder = if (!path.startsWith("http")) {
+      WS.clientUrl(urlRoot + path)
+    } else {
+      WS.clientUrl(path)
+    }
+    requestHolder.withHeaders("Cookie" -> cookies.getOrElse(""))
+  }
 
   private def fullUrlJson(path: String, contentType: Option[String], cookies: Option[String]) = fullUrl(path, cookies).withHeaders("Content-Type" -> contentType.getOrElse("application/json"))
 
   private def chooseRequest(path: String, input: String, method: String, contentType: Option[String], cookies: Option[String], form: Option[String]) = method.toLowerCase() match {
-    case "get" => fullUrl(path,cookies).get()
+    case "get" => fullUrl(path, cookies).get()
     case "post" if form.isDefined => fullUrlJson(path, Some("application/x-www-form-urlencoded"), cookies).post(form.get)
-    case "post" => fullUrlJson(path, contentType,cookies).post(input)
-    case "put" => fullUrlJson(path, contentType,cookies).put(input)
-    case "delete" => fullUrl(path,cookies).delete()
+    case "post" => fullUrlJson(path, contentType, cookies).post(input)
+    case "put" => fullUrlJson(path, contentType, cookies).put(input)
+    case "delete" => fullUrl(path, cookies).delete()
   }
 
   private def buildRequestBody(request: PactRequest): String = {
