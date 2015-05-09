@@ -35,7 +35,7 @@ case class TestSuites(disabled: String, errors: Int, failures: Int, name: String
 
 object Main extends App {
 
-  println("welcome play pact v0.3.1")
+  println("welcome play pact v0.3.2")
 
   val root = if (args.length < 1) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")
@@ -53,7 +53,7 @@ object Main extends App {
   //一个文件夹 - Pacts - TestSuites
   //一个文件 - Pact - TestSuite
   val reportDirPath = s"$root${File.separator}report"
-  val pactDir = new File(s"$root${File.separator}pacts")
+  val pactDir = new File(s"$root")
   if (!pactDir.exists()) {
     println(s"${pactDir.getAbsolutePath} do not exists.")
     System.exit(-1)
