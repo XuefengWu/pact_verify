@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<testsuites disabled=" " errors="0" failures="3" name="account" tests=" " time="0">
-      <testsuite disabled=" " errors="0" failures="3" hostname=" " id=" " name="login Service" package=" " skipped=" " tests=" " time="0" timestamp="1431527844327">
+<testsuites disabled=" " errors="7" failures="1" name="account" tests=" " time="0">
+      <testsuite disabled=" " errors="7" failures="1" hostname=" " id=" " name="login Service" package=" " skipped=" " tests=" " time="0" timestamp="1431532899944">
       <testcase assertions=" " classname="www.baidu.com" name="www.baidu.com" status=" " time="0">
       <failure type="OK">
       期望:{}
@@ -9,29 +9,33 @@
  request body: None
     </failure>
     </testcase><testcase assertions=" " classname="login" name="login" status=" " time="0">
+      <error type="Remotely Closed">
       
+    </error>
     </testcase><testcase assertions=" " classname="create with validate user" name="create with validate user" status=" " time="0">
-      <failure type="Bad Request">
-      Status: 200 != 400 
-{&quot;errorCode&quot;:&quot;userExist&quot;,&quot;messages&quot;:[&quot;username_xx已经存在&quot;]}
- request url: /api/users
- request body: Some({&quot;username&quot;:&quot;username_xx&quot;,&quot;email&quot;:&quot;username_xx@gg.co&quot;,&quot;password&quot;:&quot;password_YY_001&quot;})
-    </failure>
+      <error type="Remotely Closed">
+      
+    </error>
     </testcase><testcase assertions=" " classname="get user company roles" name="get user company roles" status=" " time="0">
+      <error type="Remotely Closed">
       
+    </error>
     </testcase><testcase assertions=" " classname="update user company roles" name="update user company roles" status=" " time="0">
-      <failure type="OK">
-      期望:{&quot;user&quot;:&quot;wu&quot;}
- 实际返回:1
- request url: /api/users/53e2f338-dbe0-11e3-b618-1a514932ac01/company_role
- request body: Some({&quot;companyId&quot;:&quot;c039a411-dbe0-11e3-b618-1a514932ac01&quot;,&quot;roleIds&quot;:[&quot;201e0001-0001-11e3-b618-1a514931ac01&quot;]})
-    </failure>
+      <error type="Remotely Closed">
+      
+    </error>
     </testcase><testcase assertions=" " classname="list all resources" name="list all resources" status=" " time="0">
+      <error type="Remotely Closed">
       
+    </error>
     </testcase><testcase assertions=" " classname="list all resources for a role" name="list all resources for a role" status=" " time="0">
+      <error type="Remotely Closed">
       
+    </error>
     </testcase><testcase assertions=" " classname="change password" name="change password" status=" " time="0">
+      <error type="Remotely Closed">
       
+    </error>
     </testcase>
     </testsuite>
     </testsuites>

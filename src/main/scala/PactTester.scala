@@ -26,7 +26,7 @@ object PactTester {
         val request: PactRequest = replacePlaceHolderParameter(interaction.request, responseOpt)
         val mergedRequest = mergeCookie(request, setCookiesOpt)
         val responseF = pactWS.send(mergedRequest)
-        val actualTry: Try[WSResponse] = Await.result(responseF, Duration(30, SECONDS))
+        val actualTry: Try[WSResponse] = Try(Await.result(responseF, Duration(30, SECONDS)))
 
         val (error, failure) = actualTry match {
           case Success(actual) =>
