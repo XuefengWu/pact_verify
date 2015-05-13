@@ -32,10 +32,11 @@ object PactTester {
           case Success(actual) =>
             val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
             val failure = assert(request, interaction.response, actual)
-            if (actual.status < 300) {
+            if (actual.status < 400) {
               responseOpt = Some(actual)
               val cookies: Seq[String] = getCookies(actual)
               if (cookies.size > 0) {
+                println(s"SetCookies: ${cookies.mkString(";")}")
                 setCookiesOpt = Some(cookies)
               }
             } else {
