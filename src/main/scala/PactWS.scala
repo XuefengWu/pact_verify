@@ -1,8 +1,9 @@
 import com.typesafe.config.ConfigFactory
 import play.api.libs.ws.ning._
 import play.api.libs.ws.{WS, WSResponse, _}
-
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.Try
 
 class PactWS(urlRoot: String) {
 
@@ -39,8 +40,8 @@ class PactWS(urlRoot: String) {
     }
   }
 
-  def send(request: PactRequest): Future[WSResponse] = {
-    chooseRequest(request.path, buildRequestBody(request), request.method.toString(), request.contentType, request.cookies, request.form)
+  def send(request: PactRequest): Future[Try[WSResponse]] = {
+    chooseRequest(request.path, buildRequestBody(request), request.method.toString(), request.contentType, request.cookies, request.form).map(v => Try(v))
   }
 
   def close(): Unit = {

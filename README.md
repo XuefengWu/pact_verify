@@ -61,7 +61,7 @@ Example json test file:
 }
 ```
 
-Futures
+Features
 ---
 
 Use response result as next request parameter by $placeholder$

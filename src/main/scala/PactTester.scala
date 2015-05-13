@@ -3,7 +3,7 @@ import play.api.libs.ws.WSResponse
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.Try
+import scala.util.{Success, Try}
 
 object PactTester {
 
@@ -15,7 +15,7 @@ object PactTester {
     val pactWS = new PactWS(urlRoot)
 
     var responseOpt: Option[WSResponse] = None
-    var cookiesOpt: Option[Seq[String]] = None
+    var setCookiesOpt: Option[Seq[String]] = None
     val result: Seq[TestCase] = for {
       i <- 1 to pact.repeat.getOrElse(1)
       interaction <- pact.interactions
@@ -23,41 +23,54 @@ object PactTester {
         val start = System.currentTimeMillis()
 
         //TODO: 创建参数，参数的连续使用
-        val request: PactRequest = rebuildRequest(interaction.request, responseOpt)
+        val request: PactRequest = replacePlaceHolderParameter(interaction.request, responseOpt)
+        val mergedRequest = mergeCookie(request, setCookiesOpt)
+        val responseF = pactWS.send(mergedRequest)
+        val actualTry: Try[WSResponse] = Await.result(responseF, Duration(30, SECONDS))
 
-        //cookies
-        if (responseOpt.isDefined) {
-          val response = responseOpt.get
-          val cookies: Seq[String] = response.cookies.filter(_.value.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
-          if (cookies.size > 0) {
-            cookiesOpt = cookiesOpt.fold(Some(cookies))(c => Some((c ++: cookies).distinct))
-          }
+        val (error, failure) = actualTry match {
+          case Success(actual) =>
+            val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
+            val failure = assert(request, interaction.response, actual)
+            if (actual.status < 300) {
+              responseOpt = Some(actual)
+              val cookies: Seq[String] = getCookies(actual)
+              if (cookies.size > 0) {
+                setCookiesOpt = Some(cookies)
+              }
+            } else {
+              responseOpt = None
+            }
+            (error, failure)
+          case scala.util.Failure(e) => (Some(Error(e.getMessage, e.getStackTrace.map(_.toString).mkString("\n"))), None)
         }
 
-        val responseF = pactWS.send(request.copy(cookies = cookiesOpt.map(_.mkString(";"))))
-        val actual: WSResponse = Await.result(responseF, Duration(30, SECONDS))
-        val expect: PactResponse = interaction.response
-        val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
-        val failure = assert(request, expect, actual)
         val spend = (System.currentTimeMillis() - start) / 1000
 
-        if (actual.status < 300) {
-          responseOpt = Some(actual)
-        } else {
-          responseOpt = None
-        }
         TestCase("assertions", interaction.description, interaction.description, "status", spend.toString, error, failure)
       }
     val errorsCount = result.count(_.error.isDefined)
     val failuresCount = result.count(_.failure.isDefined)
     val spendPact = (System.currentTimeMillis() - startPact) / 1000
     pactWS.close()
-    TestSuite("disabled", errorsCount, failuresCount, "hostname", pact.name, pact.name, "pkg", "skipped", "tests",
-      spendPact.toString, System.currentTimeMillis().toString, result)
+    TestSuite("disabled", errorsCount, failuresCount, "hostname", pact.name, pact.name, "pkg", "skipped",
+              "tests", spendPact.toString, System.currentTimeMillis().toString, result)
 
   }
 
-  private def rebuildRequest(request: PactRequest, responseOpt: Option[WSResponse]): PactRequest = {
+  private def getCookies(response: WSResponse): Seq[String] = {
+    response.cookies.filter(v => v.value.isDefined && v.name.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
+  }
+
+  private def mergeCookie(request: PactRequest, cookiesOpt: Option[Seq[String]]): PactRequest = {
+    if (request.cookies.isEmpty) {
+      request.copy(cookies = cookiesOpt.map(_.mkString(";")))
+    } else {
+      request
+    }
+  }
+
+  private def replacePlaceHolderParameter(request: PactRequest, responseOpt: Option[WSResponse]): PactRequest = {
 
     if (responseOpt.isDefined) {
       val response = responseOpt.get
