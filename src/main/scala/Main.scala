@@ -16,7 +16,7 @@ case class Interaction(description: String,
                        request: PactRequest,
                        response: PactResponse)
 
-case class Pact(name: String, repeat: Option[Int], interactions: Seq[Interaction])
+case class Pact(name: String, repeat: Option[Int], cookies: Option[String], interactions: Seq[Interaction])
 
 case class Pacts(name: String, pacts: Seq[Pact])
 
@@ -35,7 +35,7 @@ case class TestSuites(disabled: String, errors: Int, failures: Int, name: String
 
 object Main extends App {
 
-  println("welcome play pact v0.3.3")
+  println("welcome play pact v0.4.0")
 
   val root = if (args.length < 1) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")

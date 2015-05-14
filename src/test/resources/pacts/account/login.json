@@ -1,6 +1,7 @@
 {
   "name": "login Service",
   "repeat": 1,
+  "cookies": "user=1",
   "interactions": [
     {
       "description": "www.baidu.com",

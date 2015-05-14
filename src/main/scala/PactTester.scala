@@ -24,7 +24,7 @@ object PactTester {
 
         //TODO: 创建参数，参数的连续使用
         val request: PactRequest = replacePlaceHolderParameter(interaction.request, responseOpt)
-        val mergedRequest = mergeCookie(request, setCookiesOpt)
+        val mergedRequest = mergeCookie(request, setCookiesOpt, pact.cookies)
         val responseF = pactWS.send(mergedRequest)
         val actualTry: Try[WSResponse] = Try(Await.result(responseF, Duration(30, SECONDS)))
 
@@ -55,7 +55,7 @@ object PactTester {
     val spendPact = (System.currentTimeMillis() - startPact) / 1000
     pactWS.close()
     TestSuite("disabled", errorsCount, failuresCount, "hostname", pact.name, pact.name, "pkg", "skipped",
-              "tests", spendPact.toString, System.currentTimeMillis().toString, result)
+      "tests", spendPact.toString, System.currentTimeMillis().toString, result)
 
   }
 
@@ -63,12 +63,12 @@ object PactTester {
     response.cookies.filter(v => v.value.isDefined && v.name.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
   }
 
-  private def mergeCookie(request: PactRequest, cookiesOpt: Option[Seq[String]]): PactRequest = {
-    if (request.cookies.isEmpty) {
-      request.copy(cookies = cookiesOpt.map(_.mkString(";")))
-    } else {
-      request
-    }
+  private def mergeCookie(request: PactRequest, cookiesOpt: Option[Seq[String]], cookie: Option[String]): PactRequest = {
+    val requestCookies: Seq[String] = request.cookies.map(_.split(";").toSeq).getOrElse(Nil)
+    val responseCookies: Seq[String] = cookiesOpt.getOrElse(Nil)
+    val cookies: Seq[String] = cookie.map(_.split(";").toSeq).getOrElse(Nil)
+    val mergedCookies: Seq[String] = requestCookies ++ responseCookies ++ cookies
+    request.copy(cookies = Some(mergedCookies.distinct.mkString(";")))
   }
 
   private def replacePlaceHolderParameter(request: PactRequest, responseOpt: Option[WSResponse]): PactRequest = {
