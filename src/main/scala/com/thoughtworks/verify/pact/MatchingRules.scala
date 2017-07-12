@@ -6,7 +6,12 @@ import play.api.libs.json.JsValue
   * Created by xfwu on 12/07/2017.
   */
 
-case class MatchingRule(selection: String, matcher:String, expression: String)
+case class MatchingRule(selection: String, matcher:String, expression: String) {
+
+  def isBodyMatch(body: JsValue):Boolean = true
+
+}
+
 object MatchingRules {
 
   val RulePat = """"(.*)"\:\{"(.*)"\:"(.*)"\}.*""".r

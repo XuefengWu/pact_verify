@@ -16,7 +16,7 @@ case class Interaction(description: String,
     actual match {
       case _ if expect.status != actual.status =>
         Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
-      case _ if expect.body.isDefined && !isMatch(expect.body.get, Json.parse(actual.body)) =>
+      case _ if expect.body.isDefined && !expect.isMatch(Json.parse(actual.body)) =>
         Some(Failure(actual.statusText, generateBodyFailureMessage(request, actual, expect)))
       case _ => None
     }
@@ -24,47 +24,13 @@ case class Interaction(description: String,
   }
 
   private def generateBodyFailureMessage(request: PactRequest, actual: WSResponse, expect: PactResponse) = {
-    s"期望:${expect.body.get}\n 实际返回:${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
+    s"期望:${expect.body.get}\n 实际返回:${actual.body}\n " +
+      s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
   }
 
   private def generateStatuesFailureMessage(request: PactRequest, actual: WSResponse, expect: PactResponse) = {
-    s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
-  }
-
-  private def isMatch(expect: JsValue, actual: JsValue): Boolean = {
-    response.matchingRules match {
-      case Some(matchingRule) => true
-      case None => isEqual(expect,actual)
-    }
-  }
-
-  private def isEqual(expect: JsValue, actual: JsValue): Boolean = {
-    if (expect.isInstanceOf[JsObject] && actual.isInstanceOf[JsObject]) {
-      isEqualObject(expect.asInstanceOf[JsObject], actual.asInstanceOf[JsObject])
-    } else if (expect.isInstanceOf[JsArray] && actual.isInstanceOf[JsArray]) {
-      isEqualArray(expect.asInstanceOf[JsArray], actual.asInstanceOf[JsArray])
-    } else {
-      expect == actual
-    }
-  }
-
-
-
-  private def isEqualObject(expect: JsObject, actual: JsObject): Boolean = {
-    val asserts = expect.asInstanceOf[JsObject].fields.map { case (field, value) =>
-      value == actual \ field
-    }
-    if (!asserts.isEmpty) {
-      asserts.reduce(_ && _)
-    } else false
-  }
-
-  private def isEqualArray(expect: JsArray, actual: JsArray): Boolean = {
-    if (expect.value.size == actual.value.size) {
-      val actualValues = actual.value
-      val asserts = expect.value.zipWithIndex.map { case (v, i) => isEqual(v, actualValues(i)) }
-      asserts.reduce(_ && _)
-    } else false
+    s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n " +
+      s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
   }
 
 
