@@ -14,13 +14,29 @@ case class Interaction(description: String,
   def assert(request: PactRequest, actual: WSResponse): Option[Failure] = {
     val expect = this.response
     actual match {
-      case _ if expect.status != actual.status => Some(Failure(actual.statusText, s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"))
-      case _ if expect.body.isDefined && !isEqual(expect.body.get, Json.parse(actual.body)) => Some(Failure(actual.statusText, s"期望:${expect.body.get}\n 实际返回:${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"))
+      case _ if expect.status != actual.status =>
+        Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
+      case _ if expect.body.isDefined && !isMatch(expect.body.get, Json.parse(actual.body)) =>
+        Some(Failure(actual.statusText, generateBodyFailureMessage(request, actual, expect)))
       case _ => None
     }
 
   }
 
+  private def generateBodyFailureMessage(request: PactRequest, actual: WSResponse, expect: PactResponse) = {
+    s"期望:${expect.body.get}\n 实际返回:${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
+  }
+
+  private def generateStatuesFailureMessage(request: PactRequest, actual: WSResponse, expect: PactResponse) = {
+    s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
+  }
+
+  private def isMatch(expect: JsValue, actual: JsValue): Boolean = {
+    response.matchingRules match {
+      case Some(matchingRule) => true
+      case None => isEqual(expect,actual)
+    }
+  }
 
   private def isEqual(expect: JsValue, actual: JsValue): Boolean = {
     if (expect.isInstanceOf[JsObject] && actual.isInstanceOf[JsObject]) {
