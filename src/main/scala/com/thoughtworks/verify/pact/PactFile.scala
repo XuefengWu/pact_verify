@@ -13,6 +13,8 @@ object PactFile {
   implicit val pactRequestFormat = Json.format[PactRequest]
   implicit val pactResponseFormat = Json.format[PactResponse]
   implicit val interactionFormat = Json.format[Interaction]
+  implicit val providerFormat = Json.format[Provider]
+  implicit val consumerFormat = Json.format[Consumer]
   implicit val pactFormat = Json.format[Pact]
   implicit val pactsFormat = Json.format[Pacts]
 

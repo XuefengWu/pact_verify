@@ -60,7 +60,7 @@ object PactTestService {
     val errorsCount = result.count(_.error.isDefined)
     val failuresCount = result.count(_.failure.isDefined)
     val spendPact = (System.currentTimeMillis() - startPact) / 1000
-    val name = pact.name
+    val name = pact.provider.name
     TestSuite("disabled", errorsCount, failuresCount, "hostname", name, name, "pkg", "skipped",
       "tests", spendPact.toString, System.currentTimeMillis().toString, result)
   }

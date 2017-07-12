@@ -1,5 +1,10 @@
 {
-    "name": "test_provider_array",
+    "provider": {
+        "name": "test_provider_array"
+    },
+    "consumer": {
+        "name": "test_consumer"
+    },
     "interactions": [
         {
             "description": "java test interaction with a DSL array body",
