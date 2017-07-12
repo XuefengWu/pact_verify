@@ -56,7 +56,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     matchingRules.size should be(3)
     val firstRule = matchingRules.head
     firstRule.selection should be("$.body[0].id")
-    firstRule.matcher should be("match")
+    firstRule.matcherType should be("match")
     firstRule.expression should be("type")
   }
 
@@ -82,7 +82,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     matchingRules.size should be(3)
     val firstRule = matchingRules.head
     firstRule.selection should be("$.body.data.array3[0]")
-    firstRule.matcher should be("match")
+    firstRule.matcherType should be("match")
     firstRule.expression should be("type")
     firstRule.mx should be(Some(Mx("max",5)))
   }

@@ -11,7 +11,7 @@ case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option
     val expect: JsValue = body.get
     matchingRules match {
       case Some(matchingRulesJs) =>
-        MatchingRules(matchingRulesJs).foldLeft(true)((acc,v) => acc && v.isBodyMatch(expect))
+        MatchingRules(matchingRulesJs).foldLeft(true)((acc,matcher) => acc && matcher.isBodyMatch(expect))
       case None => isEqual(expect,actual)
     }
   }
