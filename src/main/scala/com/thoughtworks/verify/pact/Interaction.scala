@@ -9,8 +9,7 @@ import play.api.libs.ws.WSResponse
   */
 case class Interaction(description: String,
                        request: PactRequest,
-                       response: PactResponse,
-                       matchingRules: Option[JsValue]) {
+                       response: PactResponse) {
 
   def assert(request: PactRequest, actual: WSResponse): Option[Failure] = {
     val expect = this.response
