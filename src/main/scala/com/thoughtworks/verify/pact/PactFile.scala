@@ -1,9 +1,14 @@
+package com.thoughtworks.verify.pact
+
 import java.io.File
 
 import play.api.libs.json.Json
 
 import scala.io.Source
 
+/**
+  * Created by xfwu on 12/07/2017.
+  */
 object PactFile {
   implicit val pactRequestFormat = Json.format[PactRequest]
   implicit val pactResponseFormat = Json.format[PactResponse]

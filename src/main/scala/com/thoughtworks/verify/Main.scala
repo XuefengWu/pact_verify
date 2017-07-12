@@ -1,38 +1,16 @@
-
+package com.thoughtworks.verify
 
 import java.io.File
 
-import play.api.libs.json.JsValue
+import com.thoughtworks.verify.junit.{JunitReport, TestSuites}
+import com.thoughtworks.verify.pact.PactFile
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, _}
+import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
-
-case class PactRequest(method: String, path: String, contentType: Option[String], body: Option[JsValue], cookies: Option[String], form: Option[String])
-
-case class PactResponse(status: Int, body: Option[JsValue])
-
-case class Interaction(description: String,
-                       request: PactRequest,
-                       response: PactResponse)
-
-case class Pact(name: String, repeat: Option[Int], cookies: Option[String], interactions: Seq[Interaction])
-
-case class Pacts(name: String, pacts: Seq[Pact])
-
-case class Error(typ: String, message: String)
-
-case class Failure(typ: String, message: String)
-
-case class TestCase(assertions: String, className: String, name: String, status: String, time: String,
-                    error: Option[Error], failure: Option[Failure])
-
-case class TestSuite(disabled: String, errors: Int, failures: Int, hostname: String, id: String,
-                     name: String, pkg: String, skipped: String, tests: String, time: String,
-                     timestamp: String, cases: Seq[TestCase])
-
-case class TestSuites(disabled: String, errors: Int, failures: Int, name: String, tests: String, time: String, testSuites: Seq[TestSuite])
-
+/**
+  * Created by xfwu on 12/07/2017.
+  */
 object Main extends App {
 
   println("welcome play pact v0.4.0")
@@ -60,7 +38,7 @@ object Main extends App {
   }
   new File(reportDirPath).mkdirs()
   val pactsList = PactFile.loadPacts(pactDir)
-  val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTester.testPacts(urlRoot, pacts)))
+  val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTestService.testPacts(urlRoot, pacts)))
 
   for {
     f <- pactFs
@@ -75,4 +53,3 @@ object Main extends App {
   Await.result(Future.sequence(junitFs), Duration(60, SECONDS))
 
 }
-

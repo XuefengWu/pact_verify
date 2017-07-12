@@ -1,5 +1,10 @@
+package com.thoughtworks.verify.junit
+
 import scala.xml.Elem
 
+/**
+  * Created by xfwu on 12/07/2017.
+  */
 object JunitReport {
 
   def dumpJUnitReport(dir: String, testSuites: TestSuites): Unit = {

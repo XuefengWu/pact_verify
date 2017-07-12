@@ -1,11 +1,18 @@
+package com.thoughtworks.verify
+
+import com.thoughtworks.verify.junit._
+import com.thoughtworks.verify.pact._
 import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 
 import scala.concurrent.Await
-import scala.concurrent.duration._
+import scala.concurrent.duration.{Duration, SECONDS}
 import scala.util.{Success, Try}
 
-object PactTester {
+/**
+  * Created by xfwu on 12/07/2017.
+  */
+object PactTestService {
 
   private val PlaceHolderR = """"\$([a-zA-Z]+)\$"""".r
   private val PlaceHolderWithoutQuoR = """\$([a-zA-Z]+)\$""".r
@@ -60,7 +67,8 @@ object PactTester {
   }
 
   private def getCookies(response: WSResponse): Seq[String] = {
-    response.cookies.filter(v => v.value.isDefined && v.name.isDefined).map(c => s"${c.name.getOrElse("")}=${c.value.getOrElse("")}")
+    response.cookies.filter(v => true)
+    response.cookies.map(c => s"${c.name}=${c.value}")
   }
 
   private def mergeCookie(request: PactRequest, cookiesOpt: Option[Seq[String]], cookie: Option[String]): PactRequest = {

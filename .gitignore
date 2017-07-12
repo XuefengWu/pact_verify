@@ -18,3 +18,4 @@ server.pid
 .idea
 .idea_modules
 projectFilesBackup/
+.DS_Store
