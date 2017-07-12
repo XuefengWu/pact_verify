@@ -60,6 +60,33 @@ class PactFileSpec extends FlatSpec with Matchers {
     firstRule.expression should be("type")
   }
 
+  "Matching Rules" should "parse matchingRule from string with min" in {
+
+    val s = """ {
+                    "$.body.data.array3[0]": {
+                         "max": 5,
+                         "match": "type"
+                     },
+                     "$.body.data.array1": {
+                         "min": 0,
+                         "match": "type"
+                     },
+                     "$.body.data.array2": {
+                         "min": 1,
+                         "match": "type"
+                     }
+                              }"""
+
+    val json = Json.parse(s)
+    val matchingRules = MatchingRules(json)
+    matchingRules.size should be(3)
+    val firstRule = matchingRules.head
+    firstRule.selection should be("$.body.data.array3[0]")
+    firstRule.matcher should be("match")
+    firstRule.expression should be("type")
+    firstRule.mx should be(Some(Mx("max",5)))
+  }
+
   it should "parse interactions with matching rule" in {
 
     val s =

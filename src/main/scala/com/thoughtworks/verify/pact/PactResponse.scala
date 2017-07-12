@@ -10,7 +10,8 @@ case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option
   def isMatch(actual: JsValue): Boolean = {
     val expect: JsValue = body.get
     matchingRules match {
-      case Some(matchingRule) => true
+      case Some(matchingRulesJs) =>
+        MatchingRules(matchingRulesJs).foldLeft(true)((acc,v) => acc && v.isBodyMatch(expect))
       case None => isEqual(expect,actual)
     }
   }
@@ -25,7 +26,7 @@ case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option
     }
   }
 
-  
+
   private def isEqualObject(expect: JsObject, actual: JsObject): Boolean = {
     val asserts = expect.asInstanceOf[JsObject].fields.map { case (field, value) =>
       value == actual \ field
