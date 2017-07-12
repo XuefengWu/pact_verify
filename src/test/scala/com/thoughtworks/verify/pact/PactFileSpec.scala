@@ -3,9 +3,7 @@ package com.thoughtworks.verify.pact
 import java.io.File
 
 import org.scalatest.{FlatSpec, Matchers}
-import play.api.libs.json.{JsValue, Json}
-
-import scala.collection.mutable.Stack
+import play.api.libs.json.Json
 
 /**
   * Created by xfwu on 12/07/2017.

@@ -2,12 +2,9 @@ package com.thoughtworks.verify
 
 import com.thoughtworks.verify.junit._
 import com.thoughtworks.verify.pact._
-import play.api.libs.json._
 import play.api.libs.ws.WSResponse
 
-import scala.concurrent.Await
-import scala.concurrent.duration.{Duration, SECONDS}
-import scala.util.{Success, Try}
+import scala.util.Success
 
 /**
   * Created by xfwu on 12/07/2017.
