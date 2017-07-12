@@ -3,7 +3,7 @@ package com.thoughtworks.verify
 import java.io.File
 
 import com.thoughtworks.verify.junit.{JunitReport, TestSuites}
-import com.thoughtworks.verify.pact.PactFile
+import com.thoughtworks.verify.pact.{PactFile, PactWSImpl}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
@@ -38,7 +38,8 @@ object Main extends App {
   }
   new File(reportDirPath).mkdirs()
   val pactsList = PactFile.loadPacts(pactDir)
-  val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTestService.testPacts(urlRoot, pacts)))
+  val pactWS = new PactWSImpl(urlRoot)
+  val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTestService.testPacts(pactWS, pacts)))
 
   for {
     f <- pactFs

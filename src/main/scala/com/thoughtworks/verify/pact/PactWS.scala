@@ -5,9 +5,15 @@ import akka.stream.ActorMaterializer
 import play.api.libs.ws._
 import play.api.libs.ws.ahc.AhcWSClient
 
-import scala.concurrent.Future
+import scala.concurrent.Await
+import scala.concurrent.duration.{Duration, SECONDS}
+import scala.util.Try
 
-class PactWS (urlRoot: String) {
+trait PactWS {
+  def send(request: PactRequest): Try[WSResponse]
+  def close(): Unit
+}
+class PactWSImpl (urlRoot: String) extends PactWS{
   implicit val system = ActorSystem()
   implicit val materializer = ActorMaterializer()
   val ws = AhcWSClient()
@@ -42,9 +48,10 @@ class PactWS (urlRoot: String) {
     }
   }
 
-  def send(request: PactRequest): Future[WSResponse] = {
-    chooseRequest(request.path, buildRequestBody(request),
+  def send(request: PactRequest): Try[WSResponse] = {
+    val responseF = chooseRequest(request.path, buildRequestBody(request),
       request.method.toString(), request.contentType, request.cookies, request.form)
+    Try(Await.result(responseF, Duration(30, SECONDS)))
   }
 
   def close(): Unit = {

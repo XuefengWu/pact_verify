@@ -34,5 +34,8 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     firstRule.expression should be("type")
   }
 
+  it should "parse pact with matching rule" in {
+
+  }
 
 }
