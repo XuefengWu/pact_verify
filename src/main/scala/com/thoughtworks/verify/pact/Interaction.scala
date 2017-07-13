@@ -1,7 +1,7 @@
 package com.thoughtworks.verify.pact
 
 import com.thoughtworks.verify.junit.Failure
-import play.api.libs.json.Json
+import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
 import play.api.libs.ws.WSResponse
 
 /**
