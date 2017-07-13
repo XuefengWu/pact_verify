@@ -22,6 +22,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     case "type" => isTypeMatch(value)
     case "date" => ???
     case "regex" => ???
+    case "match" => ???
   }
 
   def isTypeMatch(value: JsValue): Boolean = expression.toLowerCase match {

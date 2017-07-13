@@ -23,7 +23,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.provider.name should be("login Service")
+    pact.provider.map(_.name).getOrElse("target provider") should be("login Service")
   }
 
   it should "parse pact json file with matching" in {
@@ -31,7 +31,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.provider.name should be("test_provider_array")
+    pact.provider.map(_.name).getOrElse("target provider") should be("test_provider_array")
     val matchRuleJs = pact.interactions.head.response.matchingRules.head
     val matchRule = MatchingRules(matchRuleJs).head
     matchRule.selection should be("$.body[0].id")
