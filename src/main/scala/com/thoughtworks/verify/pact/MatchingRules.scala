@@ -1,6 +1,11 @@
 package com.thoughtworks.verify.pact
 
+import java.util.Date
+
+import org.apache.commons.lang3.time.{DateFormatUtils, FastDateFormat}
 import play.api.libs.json._
+
+import scala.util.Try
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -20,13 +25,25 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
 
   def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Boolean = matcherType.toLowerCase match {
     case "type" => isRawTypeMatch(value)
-    case "date" => ???
+    case "date" => isDateFormatMatch(value)
     case "regex" => ???
-    case "match" if expression == "type" => isCustomerTypeMath(value, expectedBody)
+    case "match" if expression == "type" => isCustomerTypeMatch(value, expectedBody)
+    case "match" if expression == "integer" => value.isInstanceOf[JsNumber]
     case "match" => ???
   }
 
-  def isCustomerTypeMath(actual: JsValue, expectedBody: JsValue): Boolean = {
+  private def isDateFormatMatch(actual: JsValue):Boolean = {
+    actual.isInstanceOf[JsString] match {
+      case true =>
+        val df = FastDateFormat.getInstance(expression)
+        val actualStr = actual.asInstanceOf[JsString].value
+        //println(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
+        Try(df.parse(actualStr)).fold(e => {e.printStackTrace();false},_ != null)
+      case false => false
+    }
+  }
+
+  private def isCustomerTypeMatch(actual: JsValue, expectedBody: JsValue): Boolean = {
     select(expectedBody) match {
       case JsDefined(expectedFieldExpectedValue) => isCustomerTypeFieldMath(actual, expectedFieldExpectedValue)
       case _ => false
