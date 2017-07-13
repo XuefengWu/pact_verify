@@ -30,7 +30,7 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     result should be(expected)
   }
 
-  it should "select element in array from array" in {
+  it should "select element in array from root array" in {
     val body = Json.parse("""[{"id":123}]""")
     val rule = MatchingRule("$.body[0].id","match","integer",None)
     val expected = body \ 0 \ "id"

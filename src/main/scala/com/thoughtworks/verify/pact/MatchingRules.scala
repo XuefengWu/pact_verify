@@ -69,7 +69,8 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   }
 
   def select(body: JsValue): JsLookupResult = {
-    val path = selection.drop(7) //drop [$.body.]
+    val path = selection.drop(6).dropWhile( _ == '.') //drop [$.body.]
+    //println(s"select path=[$path]")
     path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
       acc match {
         case JsDefined(o) => doSelect(o, v)
@@ -79,7 +80,9 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   }
 
   private def doSelect(node: JsValue, path: String) = {
+    //println(s"doSelect path=[$path]")
     parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
+      //println(s"doSelect fieldName=[$v]")
       acc match {
         case JsDefined(o) =>
           v match {
@@ -97,7 +100,10 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
         case Seq(field, first) => Seq(field, first.dropRight(1).toInt)
         case Seq(field, first, second) => Seq(field, first.dropRight(1).toInt, second.dropRight(1).toInt)
       }
-      fields
+      fields.filterNot({
+        case v: String => v.isEmpty
+        case _ => false
+      })
     } else {
       Seq(path)
     }
