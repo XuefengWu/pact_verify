@@ -98,10 +98,10 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
           val actualValue = actualObj.value(key)
           isCustomerTypeFieldMath(actualValue, value)
         } else {
-          Some(s"expected field:[$key] is not exists")
+          Some(s"match rule[$this] failed; expected field:[$key] is not exists")
         }
       } else {
-        None
+        acc
       }
     })
   }
