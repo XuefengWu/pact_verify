@@ -26,7 +26,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
 
   def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Boolean = matcherType.toLowerCase match {
     case "type" => isRawTypeMatch(value)
-    case "date" => isDateFormatMatch(value)
+    case "date" | "timestamp"  => isDateFormatMatch(value)
     case "regex" => isRegexMatch(value)
     case "match" if expression == "type" => isCustomerTypeMatch(value, expectedBody)
     case "match" if expression == "integer" => value.isInstanceOf[JsNumber]

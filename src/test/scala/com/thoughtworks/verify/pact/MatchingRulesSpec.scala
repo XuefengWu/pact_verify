@@ -83,11 +83,19 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
 
 
   "Matching Rule Match date format" should "success with  express" in {
-    val value = """{"dob":"2017-07-12","id":613313905,"name":"ehGKdDIADDeeWpnNiZru","school":{"name":"TWU","address":"SH"}} """
+    val value = """{"dob":"2017-07-12","id":613313905} """
     val jsValue = Json.parse(value)
     val rule1 = MatchingRule("$.body.dob","date","yyyy-MM-dd",None)
     rule1.isMatchExpress(rule1.select(jsValue).get,jsValue) should be(true)
   }
+
+  "Matching Rule Match date timestamp" should "success with  express" in {
+    val value = """{"time":"2017-07-12T19:51:56","id":613313905} """
+    val jsValue = Json.parse(value)
+    val rule1 = MatchingRule("$.body.time","timestamp","yyyy-MM-dd'T'HH:mm:ss",None)
+    rule1.isMatchExpress(rule1.select(jsValue).get,jsValue) should be(true)
+  }
+
 
   "Matching Rule Match regex" should "success with  express" in {
     val value = """{"dob":"2017-07-12","id":613313905,"ip":"127.0.0.1","school":{"name":"TWU","address":"SH"}} """
