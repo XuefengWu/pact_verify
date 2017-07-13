@@ -124,13 +124,14 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     })
   }
 
-  private def doSelect(node: JsValue, path: String) = {
+  private def doSelect(node: JsValue, path: String): JsLookupResult = {
     //println(s"doSelect path=[$path]")
     parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
       //println(s"doSelect fieldName=[$v]")
       acc match {
         case JsDefined(o) =>
           v match {
+            case f: String if f.isEmpty => acc
             case f: String => acc \ f
             case i: Int => acc \ i
           }
