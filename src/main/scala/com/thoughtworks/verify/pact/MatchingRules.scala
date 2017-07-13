@@ -1,6 +1,7 @@
 package com.thoughtworks.verify.pact
 
 import java.util.Date
+import java.util.regex.Pattern
 
 import org.apache.commons.lang3.time.{DateFormatUtils, FastDateFormat}
 import play.api.libs.json._
@@ -26,10 +27,21 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Boolean = matcherType.toLowerCase match {
     case "type" => isRawTypeMatch(value)
     case "date" => isDateFormatMatch(value)
-    case "regex" => ???
+    case "regex" => isRegexMatch(value)
     case "match" if expression == "type" => isCustomerTypeMatch(value, expectedBody)
     case "match" if expression == "integer" => value.isInstanceOf[JsNumber]
     case "match" => ???
+  }
+
+  private def isRegexMatch(actual: JsValue):Boolean = {
+    actual.isInstanceOf[JsString] match {
+      case true =>
+        val pattern = Pattern.compile(expression)
+        val actualStr = actual.asInstanceOf[JsString].value
+        //println(s"expression=[$expression], actual=[${actualStr}]")
+        Try(pattern.matcher(actualStr)).fold(e => {e.printStackTrace();false},_ != null)
+      case false => false
+    }
   }
 
   private def isDateFormatMatch(actual: JsValue):Boolean = {
@@ -54,21 +66,32 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     actualField.getClass.eq(expectedField.getClass) match {
       case true if ("play.api.libs.json.JsObject".eq(actualField.getClass.getCanonicalName)) =>
         isObjectTypeMath(actualField, expectedField)
+      case true if ("play.api.libs.json.JsArray".eq(actualField.getClass.getCanonicalName)) =>
+        isArrayTypeMath(actualField, expectedField)
       case true => true
       case false => false
+    }
+  }
+
+  private def isArrayTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Boolean = {
+    val actualArray = actual.asInstanceOf[JsArray]
+    val expectedFieldExpectedArray = expectedFieldExpectedValue.asInstanceOf[JsArray]
+    actualArray \ 0 match {
+      case JsDefined(array) => isCustomerTypeFieldMath(array, (expectedFieldExpectedArray \ 0).get)
+      case err => false
     }
   }
 
   private def isObjectTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Boolean = {
     val actualObj = actual.asInstanceOf[JsObject]
     val expectedFieldExpectedValueObj = expectedFieldExpectedValue.asInstanceOf[JsObject]
-    actualObj.value.foldLeft(true)((acc, v) => {
+    expectedFieldExpectedValueObj.value.foldLeft(true)((acc, v) => {
       if(acc){
         val key = v._1
         val value = v._2
-        if(expectedFieldExpectedValueObj.value.contains(key)) {
-          val execptedValue = expectedFieldExpectedValueObj.value(key)
-          acc && isCustomerTypeFieldMath(value, execptedValue)
+        if(actualObj.value.contains(key)) {
+          val actualValue = actualObj.value(key)
+          acc && isCustomerTypeFieldMath(actualValue,value)
         } else {
           false
         }

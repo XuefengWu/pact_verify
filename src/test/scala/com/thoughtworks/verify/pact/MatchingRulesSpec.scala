@@ -58,6 +58,22 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     rule4.isMatchExpress(rule4.select(jsValue).get,jsValue) should be(true)
   }
 
+  it should "match customer type in array" in {
+    val expected = """{"numbers":[{"a":1,"b":2,"c":3},{"a":4,"b":5,"c":6}]} """
+    val expectedJsValue = Json.parse(expected)
+    val rule1 = MatchingRule("$.body.numbers","match","type",None)
+    rule1.isMatchExpress(rule1.select(expectedJsValue).get,expectedJsValue) should be(true)
+
+    val actual1 = Json.parse("""{"numbers":[{"a":1,"b":2,"c":3}]} """)
+    rule1.isMatchExpress(rule1.select(actual1).get,expectedJsValue) should be(true)
+
+    val actual2 = Json.parse("""{"numbers":[{"a":1,"b":2,"c":3,"d":4}]} """)
+    rule1.isMatchExpress(rule1.select(actual2).get,expectedJsValue) should be(true)
+
+    val actual3 = Json.parse("""{"numbers":[{"a":1,"b":2,"d":4}]} """)
+    rule1.isMatchExpress(rule1.select(actual3).get,expectedJsValue) should be(false)
+  }
+
   it should "match value with type number" in {
     val rule = MatchingRule("xxx","type","number",None)
     val value = """613313905"""
@@ -70,6 +86,13 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     val value = """{"dob":"2017-07-12","id":613313905,"name":"ehGKdDIADDeeWpnNiZru","school":{"name":"TWU","address":"SH"}} """
     val jsValue = Json.parse(value)
     val rule1 = MatchingRule("$.body.dob","date","yyyy-MM-dd",None)
+    rule1.isMatchExpress(rule1.select(jsValue).get,jsValue) should be(true)
+  }
+
+  "Matching Rule Match regex" should "success with  express" in {
+    val value = """{"dob":"2017-07-12","id":613313905,"ip":"127.0.0.1","school":{"name":"TWU","address":"SH"}} """
+    val jsValue = Json.parse(value)
+    val rule1 = MatchingRule("$.body.ip","regex","(\\d{1,3}\\.)+\\d{1,3}",None)
     rule1.isMatchExpress(rule1.select(jsValue).get,jsValue) should be(true)
   }
 
