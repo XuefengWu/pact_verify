@@ -16,100 +16,105 @@ case class Mx(typ: String, value: Int)
 
 case class MatchingRule(selection: String, matcherType: String, expression: String, mx: Option[Mx]) {
 
-  def isBodyMatch(body: JsValue, expectedBody: JsValue): Boolean = {
+  def isBodyMatch(body: JsValue, expectedBody: JsValue): Option[String] = {
     select(body) match {
       case JsDefined(o) => isMatchExpress(o, expectedBody)
-      case _ if mx.isDefined && mx.get.typ == "min" && mx.get.value == 0 => true
-      case _ => false
+      case _ if mx.isDefined && mx.get.typ == "min" && mx.get.value == 0 => None
+      case err => Some(err.toString)
     }
   }
 
-  def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Boolean = matcherType.toLowerCase match {
+  def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Option[String] = matcherType.toLowerCase match {
     case "type" => isRawTypeMatch(value)
-    case "date" | "timestamp"  => isDateFormatMatch(value)
+    case "date" | "timestamp" => isDateFormatMatch(value)
     case "regex" => isRegexMatch(value)
     case "match" if expression == "type" => isCustomerTypeMatch(value, expectedBody)
-    case "match" if expression == "integer" => value.isInstanceOf[JsNumber]
+    case "match" if expression == "integer" => isInteger(value)
     case "match" => ???
   }
 
-  private def isRegexMatch(actual: JsValue):Boolean = {
+  private def isInteger(value: JsValue) = {
+    Try(value.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
+  }
+
+  private def isRegexMatch(actual: JsValue): Option[String] = {
     actual.isInstanceOf[JsString] match {
       case true =>
         val pattern = Pattern.compile(expression)
         val actualStr = actual.asInstanceOf[JsString].value
         //println(s"expression=[$expression], actual=[${actualStr}]")
-        Try(pattern.matcher(actualStr)).fold(e => {e.printStackTrace();false},_ != null)
-      case false => false
+        Try(pattern.matcher(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
+      case false => None
     }
   }
 
-  private def isDateFormatMatch(actual: JsValue):Boolean = {
+  private def isDateFormatMatch(actual: JsValue): Option[String] = {
     actual.isInstanceOf[JsString] match {
       case true =>
         val df = FastDateFormat.getInstance(expression)
         val actualStr = actual.asInstanceOf[JsString].value
         //println(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
-        Try(df.parse(actualStr)).fold(e => {e.printStackTrace();false},_ != null)
-      case false => false
+        Try(df.parse(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
+      case false => None
     }
   }
 
-  private def isCustomerTypeMatch(actual: JsValue, expectedBody: JsValue): Boolean = {
+  private def isCustomerTypeMatch(actual: JsValue, expectedBody: JsValue): Option[String] = {
     select(expectedBody) match {
       case JsDefined(expectedFieldExpectedValue) => isCustomerTypeFieldMath(actual, expectedFieldExpectedValue)
-      case _ => false
+      case _ => None
     }
   }
 
-  private def isCustomerTypeFieldMath(actualField: JsValue, expectedField: JsValue) = {
+  private def isCustomerTypeFieldMath(actualField: JsValue, expectedField: JsValue): Option[String] = {
     actualField.getClass.eq(expectedField.getClass) match {
       case true if ("play.api.libs.json.JsObject".eq(actualField.getClass.getCanonicalName)) =>
         isObjectTypeMath(actualField, expectedField)
       case true if ("play.api.libs.json.JsArray".eq(actualField.getClass.getCanonicalName)) =>
         isArrayTypeMath(actualField, expectedField)
-      case true => true
-      case false => false
+      case true => None
+      case false => Some(s"${actualField.toString()} is not ${expectedField.getClass}")
     }
   }
 
-  private def isArrayTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Boolean = {
+  private def isArrayTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Option[String] = {
     val actualArray = actual.asInstanceOf[JsArray]
     val expectedFieldExpectedArray = expectedFieldExpectedValue.asInstanceOf[JsArray]
     actualArray \ 0 match {
       case JsDefined(array) => isCustomerTypeFieldMath(array, (expectedFieldExpectedArray \ 0).get)
-      case err => false
+      case err => None
     }
   }
 
-  private def isObjectTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Boolean = {
+  private def isObjectTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Option[String] = {
     val actualObj = actual.asInstanceOf[JsObject]
     val expectedFieldExpectedValueObj = expectedFieldExpectedValue.asInstanceOf[JsObject]
-    expectedFieldExpectedValueObj.value.foldLeft(true)((acc, v) => {
-      if(acc){
+    expectedFieldExpectedValueObj.value.foldLeft[Option[String]](None)((acc, v) => {
+      if (acc.isEmpty) {
         val key = v._1
         val value = v._2
-        if(actualObj.value.contains(key)) {
+        //println(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+        if (actualObj.value.contains(key)) {
           val actualValue = actualObj.value(key)
-          acc && isCustomerTypeFieldMath(actualValue,value)
+          isCustomerTypeFieldMath(actualValue, value)
         } else {
-          false
+          Some(s"expected field:[$key] is not exists")
         }
-      }else{
-        false
+      } else {
+        None
       }
     })
   }
 
-  def isRawTypeMatch(value: JsValue): Boolean = expression.toLowerCase match {
-    case "number" => value.isInstanceOf[JsNumber]
-    case "array" => value.isInstanceOf[JsArray]
-    case "string" => value.isInstanceOf[JsString]
-    case "boolean" => value.isInstanceOf[JsBoolean]
+  def isRawTypeMatch(value: JsValue): Option[String] = expression.toLowerCase match {
+    case "number" => Try(value.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "array" => Try(value.asInstanceOf[JsArray]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "string" => Try(value.asInstanceOf[JsString]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "boolean" => Try(value.asInstanceOf[JsBoolean]).fold[Option[String]](e => Some(e.toString), _ => None)
   }
 
   def select(body: JsValue): JsLookupResult = {
-    val path = selection.drop(6).dropWhile( _ == '.') //drop [$.body.]
+    val path = selection.drop(6).dropWhile(_ == '.') //drop [$.body.]
     //println(s"select path=[$path]")
     path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
       acc match {
