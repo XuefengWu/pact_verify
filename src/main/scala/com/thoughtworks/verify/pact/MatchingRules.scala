@@ -10,22 +10,58 @@ case class Mx(typ: String, value: Int)
 
 case class MatchingRule(selection: String, matcherType: String, expression: String, mx: Option[Mx]) {
 
-  def isBodyMatch(body: JsValue): Boolean = {
+  def isBodyMatch(body: JsValue, expectedBody: JsValue): Boolean = {
     select(body) match {
-      case JsDefined(o) => isMatchExpress(o)
+      case JsDefined(o) => isMatchExpress(o, expectedBody)
       case _ if mx.isDefined && mx.get.typ == "min" && mx.get.value == 0 => true
       case _ => false
     }
   }
 
-  def isMatchExpress(value: JsValue): Boolean = matcherType.toLowerCase match {
-    case "type" => isTypeMatch(value)
+  def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Boolean = matcherType.toLowerCase match {
+    case "type" => isRawTypeMatch(value)
     case "date" => ???
     case "regex" => ???
+    case "match" if expression == "type" => isCustomerTypeMath(value, expectedBody)
     case "match" => ???
   }
 
-  def isTypeMatch(value: JsValue): Boolean = expression.toLowerCase match {
+  def isCustomerTypeMath(actual: JsValue, expectedBody: JsValue): Boolean = {
+    select(expectedBody) match {
+      case JsDefined(expectedFieldExpectedValue) => isCustomerTypeFieldMath(actual, expectedFieldExpectedValue)
+      case _ => false
+    }
+  }
+
+  private def isCustomerTypeFieldMath(actualField: JsValue, expectedField: JsValue) = {
+    actualField.getClass.eq(expectedField.getClass) match {
+      case true if ("play.api.libs.json.JsObject".eq(actualField.getClass.getCanonicalName)) =>
+        isObjectTypeMath(actualField, expectedField)
+      case true => true
+      case false => false
+    }
+  }
+
+  private def isObjectTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Boolean = {
+    val actualObj = actual.asInstanceOf[JsObject]
+    val expectedFieldExpectedValueObj = expectedFieldExpectedValue.asInstanceOf[JsObject]
+    actualObj.value.foldLeft(true)((acc, v) => {
+      if(acc){
+        val key = v._1
+        val value = v._2
+        if(expectedFieldExpectedValueObj.value.contains(key)) {
+          val execptedValue = expectedFieldExpectedValueObj.value(key)
+          acc && isCustomerTypeFieldMath(value, execptedValue)
+        } else {
+          false
+        }
+      }else{
+        false
+      }
+    })
+  }
+
+  def isRawTypeMatch(value: JsValue): Boolean = expression.toLowerCase match {
     case "number" => value.isInstanceOf[JsNumber]
     case "array" => value.isInstanceOf[JsArray]
     case "string" => value.isInstanceOf[JsString]

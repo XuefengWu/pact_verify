@@ -30,11 +30,32 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     result should be(expected)
   }
 
-  "Matching Rule Match" should " with type array" in {
-    val rule = MatchingRule("xxx","type","array",None)
+  it should "select element in array from array" in {
+    val body = Json.parse("""[{"id":123}]""")
+    val rule = MatchingRule("$.body[0].id","match","integer",None)
+    val expected = body \ 0 \ "id"
+    val result = rule.select(body)
+    result should be(expected)
+  }
+
+  "Matching Rule Match Raw Type" should " with type array" in {
+    val rule = MatchingRule("$.body.data.array1[0].id","type","array",None)
     val value = """[{"dob":"2017-07-12","id":613313905,"name":"ehGKdDIADDeeWpnNiZru"}]"""
     val jsValue = Json.parse(value)
     rule.isMatchExpress(jsValue) should be(true)
+  }
+
+  "Matching Rule Match Customer type" should "with  number" in {
+    val value = """{"dob":"2017-07-12","id":613313905,"name":"ehGKdDIADDeeWpnNiZru","school":{"name":"TWU","address":"SH"}} """
+    val jsValue = Json.parse(value)
+    val rule1 = MatchingRule("$.body.id","match","type",None)
+    rule1.isMatchExpress(rule1.select(jsValue).get,jsValue) should be(true)
+    val rule2 = MatchingRule("$.body.name","match","type",None)
+    rule2.isMatchExpress(rule2.select(jsValue).get,jsValue) should be(true)
+    val rule3 = MatchingRule("$.body.dob","match","type",None)
+    rule3.isMatchExpress(rule3.select(jsValue).get,jsValue) should be(true)
+    val rule4 = MatchingRule("$.body.school","match","type",None)
+    rule4.isMatchExpress(rule4.select(jsValue).get,jsValue) should be(true)
   }
 
   it should "match value with type number" in {
