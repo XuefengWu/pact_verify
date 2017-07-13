@@ -65,7 +65,7 @@ class PactResponseSpec  extends FlatSpec with Matchers {
                                       ]
                     """
 
-    checkPactResponse(actualStr,expectStr, matchingRulesStr) should be(true)
+    checkPactResponse(actualStr,expectStr, matchingRulesStr) should be(None)
 
   }
 
