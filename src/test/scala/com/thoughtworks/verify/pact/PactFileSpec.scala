@@ -19,7 +19,7 @@ class PactFileSpec extends FlatSpec with Matchers {
   implicit val pactFormat = Json.format[Pact]
 
   "Pact File" should "parse pact json" in {
-    val dir = new File("src/test/resources/pacts/account")
+    val dir = new File("src/test/resources/pacts/placeholder")
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
