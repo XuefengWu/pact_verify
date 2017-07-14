@@ -17,10 +17,10 @@ object Main extends App {
 
   val root = if (args.length < 1) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")
-    val _currentPath = new File("").getAbsolutePath
-    println("Use current directory as pact_dir: " + _currentPath)
+    val _currentPath = new File("").getAbsolutePath    
     _currentPath
   } else args(0)
+  println("pact working directory is pact_dir: " + root)
 
   val urlRoot = if (args.length < 2) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")
