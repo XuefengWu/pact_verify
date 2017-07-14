@@ -7,7 +7,7 @@ import scala.util.Try
 /**
   * Created by xfwu on 14/07/2017.
   */
-object PactResponseJson {
+object ResponseBodyJson {
 
   def hardParseJsValue(jsValue: JsValue): JsValue = {
     //println(s"hard parse: jsValue:$jsValue, class:${jsValue.getClass}")

@@ -17,7 +17,7 @@ case class Interaction(description: String,
       case _ if expect.status != actual.status =>
         Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
       case _ if expect.getBody().isDefined  =>
-        expect.isMatch(PactResponseJson.hardParseJsValue(Json.parse(actual.body))) match {
+        expect.isMatch(ResponseBodyJson.hardParseJsValue(Json.parse(actual.body))) match {
           case Some(err) => Some(Failure(actual.statusText, generateBodyFailureMessage(err,request, actual, expect)))
           case None => None
         }
