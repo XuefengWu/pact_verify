@@ -19,6 +19,7 @@ libraryDependencies ++= Seq(
 scalacOptions in Test ++= Seq("-Yrangepos")
 
 assemblyMergeStrategy in assembly := {
- case PathList("META-INF", xs @ _*) => MergeStrategy.discard
- case x => MergeStrategy.first
+  case PathList("reference.conf") => MergeStrategy.concat
+  case PathList("META-INF", xs @ _*) => MergeStrategy.discard
+  case x => MergeStrategy.first
 }
