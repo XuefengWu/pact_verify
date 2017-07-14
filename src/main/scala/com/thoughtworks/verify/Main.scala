@@ -20,7 +20,6 @@ object Main extends App {
     val _currentPath = new File("").getAbsolutePath    
     _currentPath
   } else args(0)
-  println("pact working directory is pact_dir: " + root)
 
   val urlRoot = if (args.length < 2) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")
@@ -32,6 +31,7 @@ object Main extends App {
   //一个文件 - Pact - TestSuite
   val reportDirPath = s"$root${File.separator}report"
   val pactDir = new File(s"$root")
+  println("pact working directory: " + pactDir.getAbsolutePath)
   if (!pactDir.exists()) {
     println(s"${pactDir.getAbsolutePath} do not exists.")
     System.exit(-1)
