@@ -7,16 +7,18 @@ import play.api.libs.json.{JsArray, JsObject, JsValue}
   */
 case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option[JsValue]) {
 
+  def getBody() = body.map(PactResponseJson.hardParseJsValue)
+
   def isMatch(actual: JsValue): Option[String] = {
 
-    isEqual(body.get,actual) match {
+    isEqual(getBody().get,actual) match {
       case true => None
       case false => matchFields(actual)
     }
   }
 
   def matchFields(actual: JsValue):Option[String] = {
-    val expect: JsValue = body.get
+    val expect: JsValue = getBody().get
     matchingRules match {
       case Some(r) =>
         val rules = MatchingRules(r)

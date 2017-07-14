@@ -16,7 +16,7 @@ case class Interaction(description: String,
     actual match {
       case _ if expect.status != actual.status =>
         Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
-      case _ if expect.body.isDefined  =>
+      case _ if expect.getBody().isDefined  =>
         expect.isMatch(Json.parse(actual.body)) match {
           case Some(err) => Some(Failure(actual.statusText, generateBodyFailureMessage(err,request, actual, expect)))
           case None => None
@@ -26,7 +26,7 @@ case class Interaction(description: String,
   }
 
   private def generateBodyFailureMessage(err:String,request: PactRequest, actual: WSResponse, expect: PactResponse) = {
-    s"错误:$err \n 期望:${expect.body.get}\n 实际返回:${actual.body}\n " +
+    s"错误:$err \n 期望:${expect.getBody().get}\n 实际返回:${actual.body}\n " +
       s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
   }
 
