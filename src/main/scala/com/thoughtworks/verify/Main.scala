@@ -38,6 +38,10 @@ object Main extends App {
   }
   new File(reportDirPath).mkdirs()
   val pactsList = PactFile.loadPacts(pactDir)
+  if(pactsList.isEmpty){
+    println(s"${pactDir.getAbsolutePath} do not contains pact json files")
+    System.exit(-1)
+  }
   val pactWS = new PactWSImpl(urlRoot)
   val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTestService.testPacts(pactWS, pacts)))
 
