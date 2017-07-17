@@ -114,13 +114,14 @@ class PactWSImpl(urlRoot: String) extends PactWS {
 
   override def send(request: PactRequest): Try[HttpResponse] = {
     val responseF: Future[Try[CloseableHttpResponse]] = sendRequest(request)
-    Await.result(responseF.map(_.map(buildHttpResponse)), Duration(60,SECONDS))
+    Await.result(responseF.map(_.map(res => buildHttpResponse(res,request))), Duration(60,SECONDS))
   }
 
-  private def buildHttpResponse(response: CloseableHttpResponse) = new HttpResponse {
+  private def buildHttpResponse(response: CloseableHttpResponse,request: PactRequest) = new HttpResponse {
     override def headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
 
-    override def body: String = EntityUtils.toString(response.getEntity)
+    override def body: String = Try(EntityUtils.toString(response.getEntity))
+                                .recover({case t:Throwable => s"${request.path}\nt${t.getMessage}"}).get
 
     override def status: Int = response.getStatusLine.getStatusCode
 
