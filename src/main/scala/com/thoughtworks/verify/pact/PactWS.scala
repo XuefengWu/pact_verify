@@ -10,7 +10,7 @@ import scala.concurrent.duration.{Duration, SECONDS}
 import scala.util.Try
 
 trait PactWS {
-  def send(request: PactRequest): Try[WSResponse]
+  def send(request: PactRequest): Try[HttpResponse]
   def close(): Unit
 }
 class PactWSImpl (urlRoot: String) extends PactWS{
@@ -48,10 +48,21 @@ class PactWSImpl (urlRoot: String) extends PactWS{
     }
   }
 
-  def send(request: PactRequest): Try[WSResponse] = {
+  override def send(request: PactRequest): Try[HttpResponse] = {
     val responseF = chooseRequest(request.path, buildRequestBody(request),
       request.method.toString(), request.contentType, request.cookies, request.form)
-    Try(Await.result(responseF, Duration(30, SECONDS)))
+    val responseTry = Try(Await.result(responseF, Duration(30, SECONDS)))
+    responseTry.map(response => new HttpResponse {
+      override def headers: Map[String, Seq[String]] = response.headers
+
+      override def body: String = response.body
+
+      override def status: Int = response.status
+
+      override def statusText: String = response.statusText
+
+      override def cookies: Seq[HttpCookie] = response.cookies.map(c => HttpCookie(c.name,c.value))
+    })
   }
 
   def close(): Unit = {

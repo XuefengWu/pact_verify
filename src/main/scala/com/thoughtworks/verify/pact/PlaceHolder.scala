@@ -15,7 +15,7 @@ object PlaceHolder {
   private val PlaceHolderWithoutQuoR = """\$([a-zA-Z]+)\$""".r
 
 
-   def replacePlaceHolderParameter(request: PactRequest, responseOpt: Option[WSResponse]): PactRequest = {
+   def replacePlaceHolderParameter(request: PactRequest, responseOpt: Option[HttpResponse]): PactRequest = {
 
     if (responseOpt.isDefined) {
       val response = responseOpt.get

@@ -11,7 +11,7 @@ case class Interaction(description: String,
                        request: PactRequest,
                        response: PactResponse) {
 
-  def assert(request: PactRequest, actual: WSResponse): Option[Failure] = {
+  def assert(request: PactRequest, actual: HttpResponse): Option[Failure] = {
     val expect = this.response
     actual match {
       case _ if expect.status != actual.status =>
@@ -25,12 +25,12 @@ case class Interaction(description: String,
     }
   }
 
-  private def generateBodyFailureMessage(err:String,request: PactRequest, actual: WSResponse, expect: PactResponse) = {
+  private def generateBodyFailureMessage(err:String,request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
     s"错误:$err \n 期望:${expect.getBody().get}\n 实际返回:${actual.body}\n " +
       s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
   }
 
-  private def generateStatuesFailureMessage(request: PactRequest, actual: WSResponse, expect: PactResponse) = {
+  private def generateStatuesFailureMessage(request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
     s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n " +
       s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
   }

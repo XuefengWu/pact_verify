@@ -52,7 +52,7 @@ object Main extends App {
   }
   val pactWS = new PactWSImpl(urlRoot)
   val pactFs: Seq[TestSuites] = pactsList.map(pacts =>
-    Future(PactTestService.testPacts(pactWS, pacts)).result(Duration(90, SECONDS)))
+    Await.result(Future(PactTestService.testPacts(pactWS, pacts)),Duration(90, SECONDS)))
   println("execute tests finished")
   for {
     f <- pactFs

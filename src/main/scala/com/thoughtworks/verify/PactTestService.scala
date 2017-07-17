@@ -16,10 +16,10 @@ object PactTestService {
   private def testPact(pactWS: PactWS,  pact: Pact): TestSuite = {
     val startPact = System.currentTimeMillis()
 
-    var preResponseOpt: Option[WSResponse] = None
+    var preResponseOpt: Option[HttpResponse] = None
     var preCookiesOpt: Option[Seq[String]] = None
 
-    def setForNextRequest(actual: WSResponse) = {
+    def setForNextRequest(actual: HttpResponse) = {
       if (actual.status < 400) {
         preResponseOpt = Some(actual)
         if (actual.cookies.size > 0) {
