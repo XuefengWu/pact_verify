@@ -11,14 +11,14 @@ case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option
 
   def isMatch(actual: JsValue): Option[String] = {
 
-    isEqual(getBody().get,actual) match {
+    isEqual(getBody().get.get,actual) match {
       case true => None
       case false => matchFields(actual)
     }
   }
 
   def matchFields(actual: JsValue):Option[String] = {
-    val expect: JsValue = getBody().get
+    val expect: JsValue = getBody().get.get
     matchingRules match {
       case Some(r) =>
         val rules = MatchingRules(r)

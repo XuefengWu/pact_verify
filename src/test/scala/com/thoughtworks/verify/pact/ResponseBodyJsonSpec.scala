@@ -10,7 +10,7 @@ class ResponseBodyJsonSpec  extends FlatSpec with Matchers {
   "Pact Response Json" should "parse string as number" in {
     val s = """ {"message": "{\"score\": 123}"} """
     val js = (Json.parse(s) \ "message").get
-    ResponseBodyJson.hardParseJsValue(js) should be(Json.parse("""{"score":123}"""))
+    ResponseBodyJson.hardParseJsValue(js).get should be(Json.parse("""{"score":123}"""))
   }
 
   it should "parse string as json in json" in {
@@ -19,7 +19,7 @@ class ResponseBodyJsonSpec  extends FlatSpec with Matchers {
     val js1 = Json.parse(s1)
     val js2 = Json.parse(s2)
     js1 shouldNot be(js2)
-    ResponseBodyJson.hardParseJsValue(js1) should be(js2)
+    ResponseBodyJson.hardParseJsValue(js1).get should be(js2)
   }
 
 
@@ -29,7 +29,7 @@ class ResponseBodyJsonSpec  extends FlatSpec with Matchers {
     val js1 = Json.parse(s1)
     val js2 = Json.parse(s2)
     js1 shouldNot be(js2)
-    ResponseBodyJson.hardParseJsValue(js1) should be(js2)
+    ResponseBodyJson.hardParseJsValue(js1).get should be(js2)
   }
 
 

@@ -1,8 +1,8 @@
 package com.thoughtworks.verify.pact
 
 import com.thoughtworks.verify.junit.Failure
-import play.api.libs.json.{JsArray, JsObject, JsValue, Json}
-import play.api.libs.ws.WSResponse
+
+import scala.util.Success
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -17,9 +17,13 @@ case class Interaction(description: String,
       case _ if expect.status != actual.status =>
         Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
       case _ if expect.getBody().isDefined  =>
-        expect.isMatch(ResponseBodyJson.hardParseJsValue(Json.parse(actual.body))) match {
-          case Some(err) => Some(Failure(actual.statusText, generateBodyFailureMessage(err,request, actual, expect)))
-          case None => None
+        ResponseBodyJson.tryHardParseJsValue(actual.body) match {
+          case Success(jsValue) => expect.isMatch(jsValue) match {
+            case Some(err) => Some(Failure(actual.statusText, generateBodyFailureMessage(err,request, actual, expect)))
+            case None => None
+          }
+          case scala.util.Failure(f) => Some(Failure(actual.statusText,
+                        generateBodyFailureMessage(f.getStackTrace.mkString("/n"),request, actual, expect)))
         }
       case _ => None
     }

@@ -2,43 +2,49 @@ package com.thoughtworks.verify.pact
 
 import play.api.libs.json._
 
-import scala.util.Try
+import scala.util.{Success, Try}
 
 /**
   * Created by xfwu on 14/07/2017.
   */
 object ResponseBodyJson {
 
-  def hardParseJsValue(jsValue: JsValue): JsValue = {
+  def tryHardParseJsValue(body: String): Try[JsValue] = {
+    //println(s"hard parse: jsValue:$jsValue, class:${jsValue.getClass}")
+    hardParseJsValue(Json.parse(body))
+  }
+
+  def hardParseJsValue(jsValue: JsValue): Try[JsValue] = {
     //println(s"hard parse: jsValue:$jsValue, class:${jsValue.getClass}")
     jsValue match {
       case js: JsArray => hardParseStringInJsArray(js)
       case js: JsObject => hardParseStringInJsObject(js)
       case js: JsString => hardParseStringAsJsObject(js)
-      case _ => jsValue
+      case _ => Success(jsValue)
     }
   }
 
-  private def hardParseStringInJsArray(jsArray: JsArray): JsArray = {
+
+  private def hardParseStringInJsArray(jsArray: JsArray): Try[JsArray] = {
     val value2 = jsArray.value.map(hardParseJsValue)
-    JsArray(value2)
+    Try(JsArray(value2.map(_.get)))
   }
 
-  private def hardParseStringInJsObject(jsObject: JsObject): JsObject = {
+  private def hardParseStringInJsObject(jsObject: JsObject): Try[JsObject] = {
     //println(s"hardParseString: $jsObject")
     val map: collection.Map[String, JsValue] = jsObject.value
-    val map2: collection.Map[String, JsValue] = map.map(v => {
+    val map2: collection.Map[String, Try[JsValue]] = map.map(v => {
       (v._1, hardParseJsValue(v._2))
     })
-    JsObject(map2)
+    Try(JsObject(map2.map(v => (v._1,v._2.get))))
   }
 
-  private def hardParseStringAsJsObject(jsString: JsString): JsValue = {
+  private def hardParseStringAsJsObject(jsString: JsString): Try[JsValue] = {
     //println(s"hardParseStringAsJsObject: [$jsString]")
     val jsValueTry = Try(Json.parse(jsString.value))
-    jsValueTry.fold(_ => jsString,
+    jsValueTry.fold(_ => Success(jsString),
       jsValue => jsValue match {
-        case j: JsString => j
+        case j: JsString => Success(j)
         case v => hardParseJsValue(v)
       })
   }
