@@ -1,5 +1,7 @@
 package com.thoughtworks.verify.pact
 
+import org.apache.commons.logging.LogFactory
+import org.apache.commons.logging.impl.{LogFactoryImpl, SimpleLog}
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -8,6 +10,8 @@ import play.api.libs.json.Json
   */
 class MatchingRulesSpec extends FlatSpec with Matchers {
 
+  val s  = LogFactory.getFactory.setAttribute(LogFactoryImpl.LOG_PROPERTY, "org.apache.commons.logging.impl.SimpleLog")
+  val b = System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "trace")
   "Matching Rule Select" should "find field" in {
     val rule = MatchingRule("$.body.data.array1", "type", "array", None)
     val result = rule.select(body)
@@ -107,6 +111,8 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
   }
 
   it should "not match customer type when less field in object" in {
+
+
     val expected = """{"numbers":{"a":4,"b":5,"c":6}} """
     val expectedJsValue = Json.parse(expected)
     val rule1 = MatchingRule("$.body.numbers", "match", "type", None)

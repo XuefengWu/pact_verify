@@ -4,6 +4,8 @@ import java.io.File
 
 import com.thoughtworks.verify.junit.{JunitReport, TestSuites}
 import com.thoughtworks.verify.pact.PactFile
+import org.apache.commons.logging.LogFactory
+import org.apache.commons.logging.impl.LogFactoryImpl
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
@@ -33,6 +35,12 @@ object Main extends App {
     }else{
       _url
     }
+  }
+
+  LogFactory.getFactory.setAttribute(LogFactoryImpl.LOG_PROPERTY, "org.apache.commons.logging.impl.SimpleLog")
+  if(args.length > 2) {
+    val logLevel = args(2)
+    System.setProperty("org.apache.commons.logging.simplelog.defaultlog", logLevel)
   }
 
   //一个文件夹 - Pacts - TestSuites

@@ -1,8 +1,10 @@
 package com.thoughtworks.verify.pact
 
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.regex.Pattern
 
+import org.apache.commons.logging.LogFactory
 import play.api.libs.json._
 
 import scala.util.Try
@@ -14,6 +16,8 @@ import scala.util.Try
 case class Mx(typ: String, value: Int)
 
 case class MatchingRule(selection: String, matcherType: String, expression: String, mx: Option[Mx]) {
+
+  private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   def isBodyMatch(body: JsValue, expectedBody: JsValue): Option[String] = {
     select(body) match {
@@ -41,7 +45,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       case true =>
         val pattern = Pattern.compile(expression)
         val actualStr = actual.asInstanceOf[JsString].value
-        //println(s"expression=[$expression], actual=[${actualStr}]")
+        logger.trace(s"expression=[$expression], actual=[${actualStr}]")
         Try(pattern.matcher(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
@@ -52,7 +56,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       case true =>
         val df = new SimpleDateFormat(expression)
         val actualStr = actual.asInstanceOf[JsString].value
-        //println(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
+        logger.trace(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
         Try(df.parse(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
@@ -92,7 +96,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       if (acc.isEmpty) {
         val key = v._1
         val value = v._2
-        //println(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+        logger.trace(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
         if (actualObj.value.contains(key)) {
           val actualValue = actualObj.value(key)
           isCustomerTypeFieldMath(actualValue, value)
@@ -114,7 +118,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
 
   def select(body: JsValue): JsLookupResult = {
     val path = selection.drop(6).dropWhile(_ == '.') //drop [$.body.]
-    //println(s"select path=[$path]")
+    logger.trace(s"select path=[$path]")
     path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
       acc match {
         case JsDefined(o) => doSelect(o, v)
@@ -124,9 +128,9 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   }
 
   private def doSelect(node: JsValue, path: String): JsLookupResult = {
-    //println(s"doSelect path=[$path]")
+    logger.trace(s"doSelect path=[$path]")
     parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
-      //println(s"doSelect fieldName=[$v]")
+      logger.trace(s"doSelect fieldName=[$v]")
       acc match {
         case JsDefined(o) =>
           v match {
@@ -162,7 +166,6 @@ object MatchingRules {
 
   def apply(jsValue: JsValue): Seq[MatchingRule] = {
     val str = jsValue.toString()
-    //println(str)
     val rules = str.drop(1).dropRight(2).split("\\},").toSeq
     rules.map(v => {
       v match {
