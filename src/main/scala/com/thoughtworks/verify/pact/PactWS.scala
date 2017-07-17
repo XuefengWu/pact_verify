@@ -1,43 +1,107 @@
 package com.thoughtworks.verify.pact
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-import play.api.libs.ws._
-import play.api.libs.ws.ahc.AhcWSClient
 
-import scala.concurrent.Await
+import java.util
+
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods._
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.{CloseableHttpClient, HttpClients}
+import org.apache.http.message.BasicNameValuePair
+import org.apache.http.util.EntityUtils
+import org.apache.http.{Consts, NameValuePair}
+
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
+import scala.concurrent.{Await, Future}
 import scala.util.Try
 
 trait PactWS {
   def send(request: PactRequest): Try[HttpResponse]
+
   def close(): Unit
 }
-class PactWSImpl (urlRoot: String) extends PactWS{
-  implicit val system = ActorSystem()
-  implicit val materializer = ActorMaterializer()
-  val ws = AhcWSClient()
 
-  private def fullUrl(path: String, cookies: Option[String]) = {
-    val requestHolder = if (!path.startsWith("http")) {
-      ws.url(urlRoot + path)
+class PactWSImpl(urlRoot: String) extends PactWS {
+
+  private val httpClient: CloseableHttpClient = HttpClients.createDefault()
+
+  private def fullUrl(path: String): String = {
+    if (!path.startsWith("http")) {
+      urlRoot + path
     } else {
-      ws.url(path)
+      path
     }
-    requestHolder.withHttpHeaders("Cookie" -> cookies.getOrElse(""))
   }
 
-  private def fullUrlJson(path: String, contentType: Option[String], cookies: Option[String]) =
-    fullUrl(path, cookies).withHttpHeaders("Content-Type" -> contentType.getOrElse("application/json"))
-
-  private def chooseRequest(path: String, input: String, method: String, contentType: Option[String],
-                            cookies: Option[String], form: Option[String]) = method.toLowerCase() match {
-    case "get" => fullUrl(path, cookies).get()
-    case "post" if form.isDefined => fullUrlJson(path, Some("application/x-www-form-urlencoded"), cookies).post(form.get)
-    case "post" => fullUrlJson(path, contentType, cookies).post(input)
-    case "put" => fullUrlJson(path, contentType, cookies).put(input)
-    case "delete" => fullUrl(path, cookies).delete()
+  private def sendRequest(request: PactRequest): Future[Try[CloseableHttpResponse]] = {
+    val method = buildRequest(request.path, buildRequestBody(request),
+      request.method.toString(), request.contentType, request.cookies, request.form)
+    Future(Try(httpClient.execute(method)))
   }
+
+  private def setCookie(request: HttpRequestBase, cookies: Option[String]): HttpRequestBase = {
+    cookies.foreach(c => request.setHeader("Set-Cookie", c))
+    request
+  }
+
+
+  private def buildRequest(path: String, input: String, method: String, contentType: Option[String],
+                           cookies: Option[String], form: Option[String]): HttpRequestBase = {
+    val url: String = fullUrl(path)
+    method.toLowerCase() match {
+      case "get" => get(url, cookies)
+      case "post" if form.isDefined => postForm(url, cookies, form)
+      case "post" => postJson(url, cookies, input)
+      case "put" => postJson(url, cookies, input)
+      case "delete" => delete(url, cookies)
+    }
+  }
+
+  private def delete(url: String, cookies: Option[String]): HttpRequestBase = {
+    val request = new HttpDelete(url)
+    setCookie(request, cookies)
+  }
+
+  private def putJson(url: String, cookies: Option[String], input: String): HttpRequestBase = {
+    val request: HttpPut = new HttpPut(url)
+    request.setHeader("Content-Type", "application/json")
+    val entity = new StringEntity(input, Consts.UTF_8)
+    entity.setContentEncoding("UTF-8")
+    entity.setContentType("application/json")
+    request.setEntity(entity)
+    setCookie(request, cookies)
+  }
+
+  private def postJson(url: String, cookies: Option[String], input: String): HttpRequestBase = {
+    val request: HttpPost = new HttpPost(url)
+    request.setHeader("Content-Type", "application/json")
+    val entity = new StringEntity(input, Consts.UTF_8)
+    entity.setContentEncoding("UTF-8")
+    entity.setContentType("application/json")
+    request.setEntity(entity)
+    setCookie(request, cookies)
+  }
+
+  private def postForm(url: String, cookies: Option[String], form: Option[String]): HttpRequestBase = {
+    val request: HttpPost = new HttpPost(url)
+    request.setHeader("Content-Type", "application/x-www-form-urlencoded")
+    val formparams = new util.ArrayList[NameValuePair]()
+    form.get.split("&").foreach(v => {
+      val vs = v.split("=")
+      formparams.add(new BasicNameValuePair(vs(0), vs(1)))
+    })
+    val entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8)
+    request.setEntity(entity)
+    setCookie(request, cookies)
+  }
+
+
+  private def get(url: String, cookies: Option[String]): HttpRequestBase = {
+    val request: HttpGet = new HttpGet(url)
+    setCookie(request, cookies)
+  }
+
 
   private def buildRequestBody(request: PactRequest): String = {
     if (request.contentType == Some("text/plain")) {
@@ -49,24 +113,24 @@ class PactWSImpl (urlRoot: String) extends PactWS{
   }
 
   override def send(request: PactRequest): Try[HttpResponse] = {
-    val responseF = chooseRequest(request.path, buildRequestBody(request),
-      request.method.toString(), request.contentType, request.cookies, request.form)
-    val responseTry = Try(Await.result(responseF, Duration(30, SECONDS)))
-    responseTry.map(response => new HttpResponse {
-      override def headers: Map[String, Seq[String]] = response.headers
+    val responseF: Future[Try[CloseableHttpResponse]] = sendRequest(request)
+    Await.result(responseF.map(_.map(buildHttpResponse)), Duration(60,SECONDS))
+  }
 
-      override def body: String = response.body
+  private def buildHttpResponse(response: CloseableHttpResponse) = new HttpResponse {
+    override def headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
 
-      override def status: Int = response.status
+    override def body: String = EntityUtils.toString(response.getEntity)
 
-      override def statusText: String = response.statusText
+    override def status: Int = response.getStatusLine.getStatusCode
 
-      override def cookies: Seq[HttpCookie] = response.cookies.map(c => HttpCookie(c.name,c.value))
-    })
+    override def statusText: String = response.getStatusLine.getReasonPhrase
+
+    override def cookies: Seq[HttpCookie] = response.getHeaders("Set-Cookie").toSeq.map(h => HttpCookie(h.getName,h.getValue))
   }
 
   def close(): Unit = {
-    ws.close()
+    httpClient.close()
   }
 
 }
