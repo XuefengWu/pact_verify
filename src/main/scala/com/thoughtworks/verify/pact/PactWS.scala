@@ -118,16 +118,16 @@ class PactWSImpl(urlRoot: String) extends PactWS {
   }
 
   private def buildHttpResponse(response: CloseableHttpResponse,request: PactRequest) = new HttpResponse {
-    override def headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
+    override val headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
 
-    override def body: String = Try(EntityUtils.toString(response.getEntity))
+    override val body: String = Try(EntityUtils.toString(response.getEntity))
                                 .recover({case t:Throwable => s"${fullUrl(request.path)}\n${t.getStackTrace.mkString("/n")}"}).get
 
-    override def status: Int = response.getStatusLine.getStatusCode
+    override val status: Int = response.getStatusLine.getStatusCode
 
-    override def statusText: String = response.getStatusLine.getReasonPhrase
+    override val statusText: String = response.getStatusLine.getReasonPhrase
 
-    override def cookies: Seq[HttpCookie] = response.getHeaders("Set-Cookie").toSeq.map(h => HttpCookie(h.getName,h.getValue))
+    override val cookies: Seq[HttpCookie] = response.getHeaders("Set-Cookie").toSeq.map(h => HttpCookie(h.getName,h.getValue))
   }
 
   def close(): Unit = {
