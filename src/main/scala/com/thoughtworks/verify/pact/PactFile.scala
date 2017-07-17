@@ -4,7 +4,7 @@ import java.io.File
 
 import play.api.libs.json.Json
 
-import scala.io.Source
+import scala.io.{Codec, Source}
 import scala.util.{Failure, Success, Try}
 
 /**
@@ -61,7 +61,7 @@ object PactFile {
   }
 
   private def parsePactFile(f: File): Try[Pact] = {
-    val s = Source.fromFile(f).getLines().mkString("\n")
+    val s = Source.fromFile(f)(Codec.UTF8).getLines().mkString("\n")
     val pactTry = parsePact(s)
     pactTry match {
       case Failure(t) => t.addSuppressed(new Exception(f.getAbsolutePath))
