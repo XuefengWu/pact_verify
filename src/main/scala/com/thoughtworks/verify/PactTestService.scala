@@ -1,10 +1,12 @@
 package com.thoughtworks.verify
 
+import java.util.Date
+
 import com.thoughtworks.verify.junit._
 import com.thoughtworks.verify.pact._
 import play.api.libs.ws.WSResponse
 
-import scala.util.Success
+import scala.util.{Success, Try}
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -22,7 +24,7 @@ object PactTestService {
         preResponseOpt = Some(actual)
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
-          println(s"SetCookies: ${cookies.mkString(";")}")
+          //println(s"SetCookies: ${cookies.mkString(";")}")
           preCookiesOpt = Some(cookies)
         }
       } else {
@@ -73,12 +75,32 @@ object PactTestService {
     request.copy(cookies = Some(mergedCookies.distinct.mkString(";")))
   }
 
-
   def testPacts(pactWS: PactWS, pacts: Pacts): TestSuites = {
     val start = System.currentTimeMillis()
-    val testSuites: Seq[TestSuite] = pacts.pacts.map(testPact(pactWS, _))
+    val (successSeq, failurePactSeq) = pacts.pacts.partition(_.isSuccess)
+    failurePactSeq.foreach(v => {
+      println(s"pares failed: ${pacts.name}\n")
+      v.failed.get.printStackTrace()}
+    )
+    val testSuites: Seq[TestSuite] =
+      parseFailures(pacts.name,failurePactSeq.map(_.failed.get)) :: parseSuccesses(pactWS,successSeq.map(_.get)).toList
+
     val spend = (System.currentTimeMillis() - start) / 1000
-    TestSuites("disabled", testSuites.map(_.errors).reduce(_ + _), testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
+    TestSuites("disabled", testSuites.map(_.errors).reduce(_ + _),
+      testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
+  }
+
+  private def parseSuccesses(pactWS: PactWS,pacts: Seq[Pact]): Seq[TestSuite] =
+    pacts.map(v => testPact(pactWS, v))
+
+  private def parseFailures(name: String, fails: Seq[Throwable]): TestSuite = {
+    val assertions = "parse json file"
+    val status = "fail"
+    val time = "0"
+    val tcs = fails.map(f => TestCase(assertions, f.getSuppressed.toSeq(0).getMessage,"",
+      status,time,Some(Error("parse fail",f.getStackTrace.mkString("/n"))),None))
+    TestSuite("false",fails.size,0,"","",
+      name,name,"false","","0",new Date().toString,tcs)
   }
 
 }

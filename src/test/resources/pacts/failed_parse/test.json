@@ -1,0 +1,29 @@
+{
+  xxxx_ wrong_json
+
+  "provider": {
+    "name": "user Service"
+  },
+  "consumer": {
+    "name": "test_consumer"
+  },
+  "repeat": 1,
+  "cookies": "user=1",
+  "interactions": [
+    {
+      "description": "create with validate user",
+      "request": {
+        "method": "post",
+        "path": "/api/users",
+        "body": {
+          "username": "username_xx",
+          "email": "username_xx@gg.co",
+          "password": "password_YY_001"
+        }
+      },
+      "response": {
+        "status": 200
+      }
+    }
+  ]
+}

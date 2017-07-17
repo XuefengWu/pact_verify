@@ -23,7 +23,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.provider.map(_.name).getOrElse("target provider") should be("login Service")
+    pact.get.provider.map(_.name).getOrElse("target provider") should be("login Service")
   }
 
   it should "parse pact json file with matching" in {
@@ -31,8 +31,8 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.provider.map(_.name).getOrElse("target provider") should be("test_provider_array")
-    val matchRuleJs = pact.interactions.head.response.matchingRules.head
+    pact.get.provider.map(_.name).getOrElse("target provider") should be("test_provider_array")
+    val matchRuleJs = pact.get.interactions.head.response.matchingRules.head
     val matchRule = MatchingRules(matchRuleJs).head
     matchRule.selection should be("$.body[0].id")
   }
@@ -43,7 +43,16 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.interactions.head.description should be("login")
+    pact.get.interactions.head.description should be("login")
+  }
+
+  it should "parse wrong json file failed" in {
+    val dir = new File("src/test/resources/pacts/failed_parse")
+    val pacts = PactFile.loadPacts(dir)
+    pacts.size should be(1)
+    val pact = pacts.head.pacts.head
+    pact.isFailure should be(true)
+    pact.failed.get.getSuppressed.toSeq(0).getMessage should include("failed_parse/test.json")
   }
 
   "Matching Rules" should "parse matchingRule from string" in {

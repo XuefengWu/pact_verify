@@ -5,6 +5,7 @@ import java.io.File
 import play.api.libs.json.Json
 
 import scala.io.Source
+import scala.util.{Failure, Success, Try}
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -16,16 +17,15 @@ object PactFile {
   implicit val providerFormat = Json.format[Provider]
   implicit val consumerFormat = Json.format[Consumer]
   implicit val pactFormat = Json.format[Pact]
-  implicit val pactsFormat = Json.format[Pacts]
 
   def loadPacts(dir: File): List[Pacts] = {
     val (subDirs, files) = listFiles(dir).partition(_.isDirectory)
-    val pacts: Seq[Pact] = parsePacts(files)
+    val pacts: Seq[Try[Pact]] = parsePacts(files)
     val subPacts: List[Pacts] = loadParsePacts(subDirs)
     if (pacts.isEmpty) {
       subPacts
     } else {
-      subPacts :+ Pacts(dir.getName, pacts)
+      subPacts :+ Pacts(s"${dir.getParent}/${dir.getName}", pacts)
     }
   }
 
@@ -37,22 +37,22 @@ object PactFile {
     }
   }
 
-  private def parsePacts(files: Seq[File]): Seq[Pact] = {
+  private def parsePacts(files: Seq[File]): Seq[Try[Pact]] = {
     if(files != null && !files.isEmpty) {
-      val before = beforeInteraction(files.head.getParentFile)
+      val before = beforeInteraction(files.head.getParentFile).get
       files.filter(_.getName.endsWith(".json"))
         .filterNot(_.getName.startsWith("_"))
         .map(parsePactFile)
-        .map(p => p.copy(interactions = before ::: p.interactions.toList))
+        .map(pt => pt.map(p => p.copy(interactions = before ::: p.interactions.toList)))
     } else {
       Nil
     }
   }
 
-  private def beforeInteraction(dir: File): List[Interaction] = {
+  private def beforeInteraction(dir: File): Try[List[Interaction]] = {
     listFiles(dir).find(_.getName.equalsIgnoreCase("_before.json")) match {
-      case Some(f) => parsePactFile(f).interactions.toList
-      case None => Nil
+      case Some(f) => parsePactFile(f).map(_.interactions.toList)
+      case None => Success(Nil)
     }
   }
 
@@ -60,12 +60,17 @@ object PactFile {
     dir.listFiles().toSeq
   }
 
-  private def parsePactFile(f: File): Pact = {
+  private def parsePactFile(f: File): Try[Pact] = {
     val s = Source.fromFile(f).getLines().mkString("\n")
-    parsePact(s)
+    val pactTry = parsePact(s)
+    pactTry match {
+      case Failure(t) => t.addSuppressed(new Exception(f.getAbsolutePath))
+      case _ =>
+    }
+    pactTry
   }
-  private def parsePact(s: String): Pact = {
-    Json.parse(s).as[Pact]
+  private def parsePact(s: String): Try[Pact] = {
+    Try(Json.parse(s).as[Pact])
   }
 
 }
