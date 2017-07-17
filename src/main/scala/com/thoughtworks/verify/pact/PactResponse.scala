@@ -5,32 +5,31 @@ import play.api.libs.json.{JsArray, JsObject, JsValue}
 /**
   * Created by xfwu on 12/07/2017.
   */
-case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option[JsValue]) {
+case class PactResponse(status: Int, body: Option[JsValue], matchingRules: Option[JsValue]) {
 
   def getBody() = body.map(ResponseBodyJson.hardParseJsValue)
 
   def isMatch(actual: JsValue): Option[String] = {
 
-    isEqual(getBody().get.get,actual) match {
+    isEqual(getBody().get.get, actual) match {
       case true => None
       case false => matchFields(actual)
     }
   }
 
-  def matchFields(actual: JsValue):Option[String] = {
+  def matchFields(actual: JsValue): Option[String] = {
     val expect: JsValue = getBody().get.get
     matchingRules match {
       case Some(r) =>
         val rules = MatchingRules(r)
-        rules.foldLeft[Option[String]](None)((acc, matcher) => {
-          val matched = matcher.isBodyMatch(actual, expect)
-          acc.fold(matched)(err => matched.fold(Some(err))(err2 => Some(s"$err \n $err2"))
-          )
-        })
-      case None => None
+        rules.foldLeft[Option[String]](None)((acc, matcher) =>
+          matcher.isBodyMatch(actual, expect) match {
+            case Some(err2) => acc.map(err => s"$err \n $err2")
+            case None => acc
+          })
+      case None => Some(s"no matching rule for body:\nexpect:${expect.toString()}\n${actual.toString()}")
     }
   }
-
 
   private def isEqual(expect: JsValue, actual: JsValue): Boolean = {
     if (expect.isInstanceOf[JsObject] && actual.isInstanceOf[JsObject]) {
@@ -59,7 +58,6 @@ case class PactResponse(status: Int, body: Option[JsValue],matchingRules: Option
       asserts.reduce(_ && _)
     } else false
   }
-
 
 
 }

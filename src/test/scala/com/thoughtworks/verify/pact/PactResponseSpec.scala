@@ -65,16 +65,55 @@ class PactResponseSpec  extends FlatSpec with Matchers {
                                       ]
                     """
 
-    checkPactResponse(actualStr,expectStr, matchingRulesStr) should be(None)
+    checkPactResponse(actualStr,expectStr, Some(matchingRulesStr)) should be(None)
 
   }
 
-  private def  checkPactResponse(actualStr: String, expectStr: String,matchingRulesStr:String) = {
+  it should "match failure if body is not equals and no matching rule" in {
+    val expectStr =
+      """
+        [
+                            {
+                                "dob": "07/12/2017",
+                                "id": 8480334967,
+                                "name": "Rogger the Dogger",
+                                "timestamp": "2017-07-12T19:51:56"
+                            },
+                            {
+                                "dob": "07/12/2017",
+                                "id": 6885210683,
+                                "name": "Cat in the Hat",
+                                "timestamp": "2017-07-12T19:51:56"
+                            }
+                        ]
+      """
+
+    val actualStr = """
+                      [
+                                          {
+                                              "dob": "07/12/2017",
+                                              "id": 8480334967,
+                                              "name": "Rogger the Dogger",
+                                              "timestamp": "2017-07-12T19:51:56"
+                                          },
+                                          {
+                                              "dob": "07/12/2017",
+                                              "id": 6885210683,
+                                              "name": "Cat in the Hat",
+                                              "timestamp": "2017-07-12T19:51:56"
+                                          }
+                                      ]
+                    """
+
+    checkPactResponse(actualStr,expectStr, None).getClass.getCanonicalName should be("scala.Some")
+  }
+
+  private def  checkPactResponse(actualStr: String, expectStr: String,matchingRulesStr: Option[String]) = {
     val expect = Json.parse(expectStr)
-    val matchingRules = Json.parse(matchingRulesStr)
+    val matchingRules = matchingRulesStr.map(Json.parse)
     val actual = Json.parse(actualStr)
 
-    val response = PactResponse(200,Some(expect),Some(matchingRules))
+    val response = PactResponse(200,Some(expect),matchingRules)
     response.matchFields(actual)
   }
 
