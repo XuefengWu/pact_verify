@@ -30,13 +30,13 @@ case class Interaction(description: String,
   }
 
   private def generateBodyFailureMessage(err:String,request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
-    s"错误:$err \n 期望:${expect.getBody().get}\n 实际返回:${actual.body}\n " +
-      s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
+    s"request url: ${request.path}\n 错误:$err \n 期望:${expect.getBody().get}\n 实际返回:${actual.body}\n " +
+      s"request body: ${request.body.map(_.toString())}"
   }
 
   private def generateStatuesFailureMessage(request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
-    s"Status: ${expect.status} != ${actual.status} \n${actual.body}\n " +
-      s"request url: ${request.path}\n request body: ${request.body.map(_.toString())}"
+    s"request url: ${request.path}\n Status: ${expect.status} != ${actual.status} \n${actual.body}\n " +
+      s"request body: ${request.body.map(_.toString())}"
   }
 
 
