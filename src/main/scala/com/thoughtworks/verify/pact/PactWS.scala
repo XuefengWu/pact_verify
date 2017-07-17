@@ -121,7 +121,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
     override def headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
 
     override def body: String = Try(EntityUtils.toString(response.getEntity))
-                                .recover({case t:Throwable => s"${request.path}\nt${t.getMessage}"}).get
+                                .recover({case t:Throwable => s"${fullUrl(request.path)}\nt${t.getMessage}"}).get
 
     override def status: Int = response.getStatusLine.getStatusCode
 
