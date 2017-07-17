@@ -26,7 +26,15 @@ object Main extends App {
     val defaultRoot = "http://localhost:8080"
     println("Use default: " + defaultRoot)
     defaultRoot
-  } else args(1)
+  } else {
+    val _url = args(1)
+    if(_url.endsWith("/")) {
+      _url.dropRight(1)
+    }else{
+      _url
+    }
+  }
+
   //一个文件夹 - Pacts - TestSuites
   //一个文件 - Pact - TestSuite
   val reportDirPath = s"$root${File.separator}report"
@@ -43,18 +51,17 @@ object Main extends App {
     System.exit(-1)
   }
   val pactWS = new PactWSImpl(urlRoot)
-  val pactFs: Seq[Future[TestSuites]] = pactsList.map(pacts => Future(PactTestService.testPacts(pactWS, pacts)))
-
+  val pactFs: Seq[TestSuites] = pactsList.map(pacts =>
+    Future(PactTestService.testPacts(pactWS, pacts)).result(Duration(90, SECONDS)))
+  println("execute tests finished")
   for {
     f <- pactFs
-    tss <- f
-    ts <- tss.testSuites
+    ts <- f.testSuites
     tc <- ts.cases if tc.failure.isDefined
     fail <- tc.failure
   } {
     println(s"\n${ts.name}::${tc.name} \n ${fail.message}")
   }
-  val junitFs: Seq[Future[Unit]] = pactFs.map(tssF => tssF.map(tss => JunitReport.dumpJUnitReport(reportDirPath, tss)))
-  Await.result(Future.sequence(junitFs), Duration(60, SECONDS))
-
+  pactFs.map(tss => JunitReport.dumpJUnitReport(reportDirPath, tss))
+  println("dump report finished")
 }
