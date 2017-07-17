@@ -50,10 +50,13 @@ object Main extends App {
     println(s"${pactDir.getAbsolutePath} do not contains pact json files")
     System.exit(-1)
   }
-  val pactWS = new PactWSImpl(urlRoot)
+
   val pactFs: Seq[TestSuites] = pactsList.map(pacts =>
-    Await.result(Future(PactTestService.testPacts(pactWS, pacts)),Duration(90, SECONDS)))
+    Await.result(Future(PactTestService.testPacts(pacts)),Duration(90, SECONDS))
+  )
+    
   println("execute tests finished")
+
   for {
     f <- pactFs
     ts <- f.testSuites

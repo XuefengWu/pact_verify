@@ -2,6 +2,7 @@ package com.thoughtworks.verify
 
 import java.util.Date
 
+import com.thoughtworks.verify.Main.urlRoot
 import com.thoughtworks.verify.junit._
 import com.thoughtworks.verify.pact._
 import play.api.libs.ws.WSResponse
@@ -54,7 +55,6 @@ object PactTestService {
         val spend = (System.currentTimeMillis() - start) / 1000
         TestCase("assertions", interaction.description, interaction.description, "status", spend.toString, error, failure)
       }
-    pactWS.close()
     generateTestSuite(pact, startPact, result)
   }
 
@@ -75,7 +75,8 @@ object PactTestService {
     request.copy(cookies = Some(mergedCookies.distinct.mkString(";")))
   }
 
-  def testPacts(pactWS: PactWS, pacts: Pacts): TestSuites = {
+  def testPacts(pacts: Pacts): TestSuites = {
+    val pactWS = new PactWSImpl(urlRoot)
     val start = System.currentTimeMillis()
     val (successSeq, failurePactSeq) = pacts.pacts.partition(_.isSuccess)
     failurePactSeq.foreach(v => {
@@ -85,6 +86,7 @@ object PactTestService {
     val testSuites: Seq[TestSuite] =
       parseFailures(pacts.name,failurePactSeq.map(_.failed.get)) :: parseSuccesses(pactWS,successSeq.map(_.get)).toList
 
+    pactWS.close()
     val spend = (System.currentTimeMillis() - start) / 1000
     TestSuites("disabled", testSuites.map(_.errors).reduce(_ + _),
       testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
