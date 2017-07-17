@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   ("org.apache.httpcomponents" % "httpclient" % "4.5.3"),
   ("com.typesafe.play" %% "play-json" % "2.6.1").exclude("com.typesafe.play","build-link"),  
   ("org.scala-lang.modules" %% "scala-xml" % "1.0.5").exclude("commons-logging", "commons-logging"),
-  ("org.scalactic" %% "scalactic" % "3.0.1"),
+  ("org.scalactic" %% "scalactic" % "3.0.1" % "test"),
   ("org.scalatest" %% "scalatest" % "3.0.1" % "test")
 )
 
