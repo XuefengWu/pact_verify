@@ -39,7 +39,10 @@ object PactFile {
 
   private def parsePacts(files: Seq[File]): Seq[Pact] = {
     if(files != null && !files.isEmpty) {
-      files.filter(_.getName.endsWith(".json")).map(f => Source.fromFile(f).getLines().mkString("\n")).map(parsePact)
+      files.filter(_.getName.endsWith(".json"))
+        .filterNot(_.getName.startsWith("_"))
+        .map(f => Source.fromFile(f).getLines().mkString("\n"))
+        .map(parsePact)
     } else {
       Nil
     }
