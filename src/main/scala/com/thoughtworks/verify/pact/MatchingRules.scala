@@ -1,8 +1,8 @@
 package com.thoughtworks.verify.pact
 
+import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 
-import org.apache.commons.lang3.time.FastDateFormat
 import play.api.libs.json._
 
 import scala.util.Try
@@ -50,7 +50,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   private def isDateFormatMatch(actual: JsValue): Option[String] = {
     actual.isInstanceOf[JsString] match {
       case true =>
-        val df = FastDateFormat.getInstance(expression)
+        val df = new SimpleDateFormat(expression)
         val actualStr = actual.asInstanceOf[JsString].value
         //println(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
         Try(df.parse(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
