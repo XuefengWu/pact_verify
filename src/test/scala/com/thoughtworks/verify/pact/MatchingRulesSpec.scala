@@ -78,12 +78,31 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
     rule1.isMatchExpress(rule1.select(expectedJsValue).get, expectedJsValue) should be(None)
   }
 
-  it should "not match customer type when less field in array" in {
+  it should "not match customer type whole in object in object" in {
+    val expected = """{"school":{"class":{"a":5,"b":6}}} """
+    val expectedJsValue = Json.parse(expected)
+    val acutal = """{"school":{"class":{"a":5}}} """
+    val acutalJsValue = Json.parse(acutal)
+    val rule1 = MatchingRule("$.body", "match", "type", None)
+    val errorMsg = "match rule[MatchingRule($.body,match,type,None)] failed; expected field:[b] is not exists"
+    rule1.isMatchExpress(rule1.select(acutalJsValue).get, expectedJsValue) should be(Some(errorMsg))
+  }
+
+  it should "not match customer type when more inner field in body" in {
     val expected = """{"numbers":[{"a":1,"b":2,"c":3},{"a":4,"b":5,"c":6}]} """
     val expectedJsValue = Json.parse(expected)
     val rule1 = MatchingRule("$.body.numbers", "match", "type", None)
     val actual3 = Json.parse("""{"numbers":[{"a":9,"b":2,"d":4}]} """)
     val expectedErr = "match rule[MatchingRule($.body.numbers,match,type,None)] failed; expected field:[c] is not exists"
+    rule1.isMatchExpress(rule1.select(actual3).get, expectedJsValue) should be(Some(expectedErr))
+  }
+
+  it should "not match customer type when more outter field in body" in {
+    val expected = """{"a":1,"b":2,"c":3}"""
+    val expectedJsValue = Json.parse(expected)
+    val rule1 = MatchingRule("$.body", "match", "type", None)
+    val actual3 = Json.parse("""{"a":9,"b":2,"d":4} """)
+    val expectedErr = "match rule[MatchingRule($.body,match,type,None)] failed; expected field:[c] is not exists"
     rule1.isMatchExpress(rule1.select(actual3).get, expectedJsValue) should be(Some(expectedErr))
   }
 
