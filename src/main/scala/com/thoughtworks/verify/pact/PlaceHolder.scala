@@ -1,7 +1,6 @@
 package com.thoughtworks.verify.pact
 
 import play.api.libs.json.{JsUndefined, Json}
-import play.api.libs.ws.WSResponse
 
 import scala.util.Try
 

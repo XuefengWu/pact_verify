@@ -1,9 +1,8 @@
 package com.thoughtworks.verify.pact
 
-import java.util.Date
 import java.util.regex.Pattern
 
-import org.apache.commons.lang3.time.{DateFormatUtils, FastDateFormat}
+import org.apache.commons.lang3.time.FastDateFormat
 import play.api.libs.json._
 
 import scala.util.Try

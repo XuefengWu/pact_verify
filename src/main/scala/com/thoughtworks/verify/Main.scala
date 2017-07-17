@@ -3,7 +3,7 @@ package com.thoughtworks.verify
 import java.io.File
 
 import com.thoughtworks.verify.junit.{JunitReport, TestSuites}
-import com.thoughtworks.verify.pact.{PactFile, PactWSImpl}
+import com.thoughtworks.verify.pact.PactFile
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
@@ -54,7 +54,7 @@ object Main extends App {
   val pactFs: Seq[TestSuites] = pactsList.map(pacts =>
     Await.result(Future(PactTestService.testPacts(pacts)),Duration(90, SECONDS))
   )
-    
+
   println("execute tests finished")
 
   for {

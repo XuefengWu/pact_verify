@@ -5,9 +5,8 @@ import java.util.Date
 import com.thoughtworks.verify.Main.urlRoot
 import com.thoughtworks.verify.junit._
 import com.thoughtworks.verify.pact._
-import play.api.libs.ws.WSResponse
 
-import scala.util.{Success, Try}
+import scala.util.Success
 
 /**
   * Created by xfwu on 12/07/2017.
