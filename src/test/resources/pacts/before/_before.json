@@ -1,0 +1,28 @@
+{
+  "provider": {
+    "name": "login Service"
+  },
+  "consumer": {
+    "name": "test_consumer"
+  },
+  "repeat": 1,
+  "cookies": "user=1",
+  "interactions": [
+    {
+      "description": "login",
+      "request": {
+        "method": "post",
+        "path": "/api/login",
+        "body": {
+          "userId": "",
+          "username": "admin",
+          "password": "password",
+          "loginToken": ""
+        }
+      },
+      "response": {
+        "status": 200
+      }
+    }
+  ]
+}

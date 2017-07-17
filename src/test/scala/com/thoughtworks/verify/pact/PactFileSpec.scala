@@ -38,6 +38,14 @@ class PactFileSpec extends FlatSpec with Matchers {
   }
 
 
+  it should "parse pact json file with login before" in {
+    val dir = new File("src/test/resources/pacts/before")
+    val pacts = PactFile.loadPacts(dir)
+    pacts.size should be(1)
+    val pact = pacts.head.pacts.head
+    pact.interactions.head.description should be("login")
+  }
+
   "Matching Rules" should "parse matchingRule from string" in {
 
     val s = """ {

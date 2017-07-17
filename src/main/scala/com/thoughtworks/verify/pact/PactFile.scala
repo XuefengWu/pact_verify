@@ -39,12 +39,20 @@ object PactFile {
 
   private def parsePacts(files: Seq[File]): Seq[Pact] = {
     if(files != null && !files.isEmpty) {
+      val before = beforeInteraction(files.head.getParentFile)
       files.filter(_.getName.endsWith(".json"))
         .filterNot(_.getName.startsWith("_"))
-        .map(f => Source.fromFile(f).getLines().mkString("\n"))
-        .map(parsePact)
+        .map(parsePactFile)
+        .map(p => p.copy(interactions = before ::: p.interactions.toList))
     } else {
       Nil
+    }
+  }
+
+  private def beforeInteraction(dir: File): List[Interaction] = {
+    listFiles(dir).find(_.getName.equalsIgnoreCase("_before.json")) match {
+      case Some(f) => parsePactFile(f).interactions.toList
+      case None => Nil
     }
   }
 
@@ -52,6 +60,10 @@ object PactFile {
     dir.listFiles().toSeq
   }
 
+  private def parsePactFile(f: File): Pact = {
+    val s = Source.fromFile(f).getLines().mkString("\n")
+    parsePact(s)
+  }
   private def parsePact(s: String): Pact = {
     Json.parse(s).as[Pact]
   }
