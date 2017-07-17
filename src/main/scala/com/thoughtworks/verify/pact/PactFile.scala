@@ -61,8 +61,12 @@ object PactFile {
   }
 
   private def parsePactFile(f: File): Try[Pact] = {
-    val s = Source.fromFile(f)(Codec.UTF8).getLines().mkString("\n")
-    val pactTry = parsePact(s)
+    val sTry = Try(Source.fromFile(f)(Codec.UTF8).getLines().mkString("\n"))
+    sTry match {
+      case Failure(t) => t.addSuppressed(new Exception(s"read file by UTF8: ${f.getAbsolutePath}"))
+      case _ =>
+    }
+    val pactTry = sTry.flatMap(parsePact)
     pactTry match {
       case Failure(t) => t.addSuppressed(new Exception(f.getAbsolutePath))
       case _ =>
