@@ -27,7 +27,7 @@ case class PactResponse(status: Int, body: Option[JsValue], matchingRules: Optio
             case Some(err2) => Some(s"${acc.getOrElse("")}\n$err2")
             case None => acc
           })
-      case None => Some(s"no matching rule for body:\nexpect:${expect.toString()}\n${actual.toString()}")
+      case None => Some(s"body context is not equals and no matching rule")
     }
   }
 
