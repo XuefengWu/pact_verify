@@ -48,7 +48,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     val pacts = PactFile.loadPacts(dir)
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
-    pact.get.interactions.head.description should be("login")
+    pact.get.interactions.head.description should be("_before_login")
     pact.get.source.get should be("before/test.json")
   }
 
