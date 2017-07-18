@@ -61,7 +61,7 @@ object PactTestService {
   private def generateTestSuite(pact: Pact, startPact: Long, result: Seq[TestCase]) = {
     val errorsCount = result.count(_.error.isDefined)
     val failuresCount = result.count(_.failure.isDefined)
-    val spendPact = (System.currentTimeMillis() - startPact) / 1000
+    val spendPact = (System.currentTimeMillis() - startPact)
     val name = pact.provider.map(_.name).getOrElse("target provider")
     TestSuite("disabled", errorsCount, failuresCount, "hostname", name, name, "pkg", "skipped",
       result.size, spendPact.toString, System.currentTimeMillis().toString, result)
