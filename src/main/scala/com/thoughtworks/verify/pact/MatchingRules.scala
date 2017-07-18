@@ -92,11 +92,14 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   private def isObjectTypeMath(actual: JsValue, expectedFieldExpectedValue: JsValue): Option[String] = {
     val actualObj = actual.asInstanceOf[JsObject]
     val expectedFieldExpectedValueObj = expectedFieldExpectedValue.asInstanceOf[JsObject]
+    logger.debug(s"expectedFieldExpectedObj:${Json.stringify(expectedFieldExpectedValueObj)} \n" +
+      s"expectedFieldExpectedKeys: [${expectedFieldExpectedValueObj.value.map(_._1).mkString(",")}")
+
     expectedFieldExpectedValueObj.value.foldLeft[Option[String]](None)((acc, v) => {
       if (acc.isEmpty) {
         val key = v._1
         val value = v._2
-        logger.debug(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+        logger.debug(s"expected key:[$key], value:[${Json.stringify(actual)}], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
         if (actualObj.value.contains(key)) {
           val actualValue = actualObj.value(key)
           val res = isCustomerTypeFieldMath(actualValue, value)
