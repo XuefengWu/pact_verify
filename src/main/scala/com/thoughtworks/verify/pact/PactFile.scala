@@ -54,7 +54,7 @@ object PactFile {
 
   private def beforeInteraction(dir: File): Try[List[Interaction]] = {
     listFiles(dir).find(_.getName.equalsIgnoreCase("_before.json")) match {
-      case Some(f) => parsePactFile(f).map(_.interactions.toList)
+      case Some(f) => parsePactFile(f).map(_.interactions.map(v => v.copy(description = s"_before_${v.description}")).toList)
       case None => Success(Nil)
     }
   }

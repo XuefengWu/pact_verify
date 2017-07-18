@@ -55,7 +55,7 @@ object PactTestService {
       TestCase("assertions", pact.source.getOrElse(""),
         interaction.description, "status", spend.toString, error, failure)
     }
-    generateTestSuite(pact, startPact, result)
+    generateTestSuite(pact, startPact, result.filterNot(_.name.startsWith("_before_")))
   }
 
   private def generateTestSuite(pact: Pact, startPact: Long, result: Seq[TestCase]) = {
