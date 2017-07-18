@@ -27,44 +27,48 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     }
   }
 
-  def isMatchExpress(value: JsValue, expectedBody: JsValue = JsNull): Option[String] = matcherType.toLowerCase match {
-    case "type" => isRawTypeMatch(value)
-    case "date" | "timestamp" => isDateFormatMatch(value)
-    case "regex" => isRegexMatch(value)
-    case "match" if expression == "type" => isCustomerTypeMatch(value, expectedBody)
-    case "match" if expression == "integer" => isInteger(value)
+  def isMatchExpress(fieldValue: JsValue, expectedBody: JsValue = JsNull): Option[String] = matcherType.toLowerCase match {
+    case "type" => isRawTypeMatch(fieldValue)
+    case "date" | "timestamp" => isDateFormatMatch(fieldValue)
+    case "regex" => isRegexMatch(fieldValue)
+    case "match" if expression == "type" => isCustomerTypeMatch(fieldValue, expectedBody)
+    case "match" if expression == "integer" => isInteger(fieldValue)
     case "match" => ???
   }
 
-  private def isInteger(value: JsValue) = {
-    Try(value.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
+  private def isInteger(actualFieldValue: JsValue) = {
+    Try(actualFieldValue.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
   }
 
-  private def isRegexMatch(actual: JsValue): Option[String] = {
-    actual.isInstanceOf[JsString] match {
+  private def isRegexMatch(actualFieldValue: JsValue): Option[String] = {
+    actualFieldValue.isInstanceOf[JsString] match {
       case true =>
         val pattern = Pattern.compile(expression)
-        val actualStr = actual.asInstanceOf[JsString].value
-        logger.debug(s"expression=[$expression], actual=[${actualStr}]")
+        val actualStr = actualFieldValue.asInstanceOf[JsString].value
+        logger.debug(s"expression=[$expression], actualFieldValue=[${actualStr}]")
         Try(pattern.matcher(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
   }
 
-  private def isDateFormatMatch(actual: JsValue): Option[String] = {
-    actual.isInstanceOf[JsString] match {
+  private def isDateFormatMatch(actualFieldValue: JsValue): Option[String] = {
+    actualFieldValue.isInstanceOf[JsString] match {
       case true =>
         val df = new SimpleDateFormat(expression)
-        val actualStr = actual.asInstanceOf[JsString].value
-        logger.debug(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
+        val actualStr = actualFieldValue.asInstanceOf[JsString].value
+        logger.debug(s"expression=[$expression], actualFieldValue=[${actualStr}], expect=[${df.format(new Date())}]")
         Try(df.parse(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
   }
 
-  private def isCustomerTypeMatch(actual: JsValue, expectedBody: JsValue): Option[String] = {
+  private def isCustomerTypeMatch(actualFieldValue: JsValue, expectedBody: JsValue): Option[String] = {
     select(expectedBody) match {
-      case JsDefined(expectedFieldExpectedValue) => isCustomerTypeFieldMath(actual, expectedFieldExpectedValue)
+      case JsDefined(expectedFieldExpectedValue) =>
+        val res = isCustomerTypeFieldMath(actualFieldValue, expectedFieldExpectedValue)
+        logger.debug(s"isCustomerTypeMatch:\nactualFieldValue:${Json.stringify(actualFieldValue)}\n" +
+          s"expected:${Json.stringify(expectedFieldExpectedValue)}\n MatchResult$res")
+        res
       case _ => None
     }
   }
@@ -99,7 +103,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       if (acc.isEmpty) {
         val key = v._1
         val value = v._2
-        logger.debug(s"expected key:[$key], value:[${Json.stringify(actual)}], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+        logger.debug(s"expected key:[$key], actualFieldValue:[${Json.stringify(actual)}], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
         if (actualObj.value.contains(key)) {
           val actualValue = actualObj.value(key)
           val res = isCustomerTypeFieldMath(actualValue, value)
@@ -114,11 +118,11 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     })
   }
 
-  def isRawTypeMatch(value: JsValue): Option[String] = expression.toLowerCase match {
-    case "number" => Try(value.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
-    case "array" => Try(value.asInstanceOf[JsArray]).fold[Option[String]](e => Some(e.toString), _ => None)
-    case "string" => Try(value.asInstanceOf[JsString]).fold[Option[String]](e => Some(e.toString), _ => None)
-    case "boolean" => Try(value.asInstanceOf[JsBoolean]).fold[Option[String]](e => Some(e.toString), _ => None)
+  def isRawTypeMatch(fieldValue: JsValue): Option[String] = expression.toLowerCase match {
+    case "number" => Try(fieldValue.asInstanceOf[JsNumber]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "array" => Try(fieldValue.asInstanceOf[JsArray]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "string" => Try(fieldValue.asInstanceOf[JsString]).fold[Option[String]](e => Some(e.toString), _ => None)
+    case "boolean" => Try(fieldValue.asInstanceOf[JsBoolean]).fold[Option[String]](e => Some(e.toString), _ => None)
   }
 
   def select(body: JsValue): JsLookupResult = {
