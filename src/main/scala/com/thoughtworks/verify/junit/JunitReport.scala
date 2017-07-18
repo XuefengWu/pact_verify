@@ -19,7 +19,7 @@ object JunitReport {
   }
 
   private def generateJUnitTestSuiteReport(testSuite: TestSuite): Elem = {
-    <testsuite disabled=" " errors={testSuite.errors.toString} failures={testSuite.failures.toString} hostname=" " id=" " name={testSuite.name} package=" " skipped=" " tests=" " time={testSuite.time} timestamp={testSuite.timestamp}>
+    <testsuite disabled=" " errors={testSuite.errors.toString} failures={testSuite.failures.toString} hostname=" " id=" " name={testSuite.name} package=" " skipped=" " tests={testSuite.tests.toString} time={testSuite.time} timestamp={testSuite.timestamp}>
       {testSuite.cases.map(generateJUnitTestCaseReport)}
     </testsuite>
   }
