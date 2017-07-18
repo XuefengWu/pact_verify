@@ -108,6 +108,45 @@ class PactResponseSpec  extends FlatSpec with Matchers {
     checkPactResponse(actualStr,expectStr, None).getClass.getCanonicalName should be("scala.Some")
   }
 
+  it should "match failure if body less field" in {
+    val expectStr =
+      """
+        [
+                            {
+                                "dob": "07/12/2017",
+                                "id": 8480334967,
+                                "name": "Rogger the Dogger",
+                                "timestamp": "2017-07-12T19:51:56"
+                            },
+                            {
+                                "dob": "07/12/2017",
+                                "id": 6885210683,
+                                "name": "Cat in the Hat",
+                                "timestamp": "2017-07-12T19:51:56"
+                            }
+                        ]
+      """
+
+    val actualStr = """
+                      [
+                                          {
+                                              "dob": "07/12/2017",
+                                              "id": 8480334967,
+                                              "timestamp": "2017-07-12T19:51:56"
+                                          },
+                                          {
+                                              "dob": "07/12/2017",
+                                              "id": 6885210683,
+                                              "timestamp": "2017-07-12T19:51:56"
+                                          }
+                                      ]
+                    """
+
+    val rule = """ {"matchingRules": { "$.body": {"match": "type"} }} """
+
+    checkPactResponse(actualStr,expectStr, Some(rule)).getClass.getCanonicalName should be("scala.Some")
+  }
+
   private def  checkPactResponse(actualStr: String, expectStr: String,matchingRulesStr: Option[String]) = {
     val expect = Json.parse(expectStr)
     val matchingRules = matchingRulesStr.map(Json.parse)

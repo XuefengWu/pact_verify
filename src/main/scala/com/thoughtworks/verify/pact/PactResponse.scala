@@ -24,7 +24,7 @@ case class PactResponse(status: Int, body: Option[JsValue], matchingRules: Optio
         val rules = MatchingRules(r)
         rules.foldLeft[Option[String]](None)((acc, matcher) =>
           matcher.isBodyMatch(actual, expect) match {
-            case Some(err2) => acc.map(err => s"$err \n $err2")
+            case Some(err2) => Some(s"${acc.getOrElse("")}\n$err2")
             case None => acc
           })
       case None => Some(s"no matching rule for body:\nexpect:${expect.toString()}\n${actual.toString()}")
