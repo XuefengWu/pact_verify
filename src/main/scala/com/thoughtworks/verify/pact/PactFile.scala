@@ -2,6 +2,7 @@ package com.thoughtworks.verify.pact
 
 import java.io.File
 
+import org.apache.commons.logging.LogFactory
 import play.api.libs.json.Json
 
 import scala.io.{Codec, Source}
@@ -17,6 +18,8 @@ object PactFile {
   implicit val providerFormat = Json.format[Provider]
   implicit val consumerFormat = Json.format[Consumer]
   implicit val pactFormat = Json.format[Pact]
+
+  private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   def loadPacts(dir: File): List[Pacts] = {
     val (subDirs, files) = listFiles(dir).partition(_.isDirectory)
@@ -61,6 +64,7 @@ object PactFile {
   }
 
   private def parsePactFile(f: File): Try[Pact] = {
+    logger.debug(s"parsePactFile: ${f.getAbsolutePath}")
     val sTry = Try(Source.fromFile(f)(Codec.UTF8).getLines().mkString("\n"))
     sTry match {
       case Failure(t) => t.addSuppressed(new Exception(s"read file by UTF8: ${f.getAbsolutePath}"))
@@ -73,6 +77,7 @@ object PactFile {
     }
     pactTry.map(_.copy(source = Some(s"${f.getParentFile.getName}/${f.getName}")))
   }
+
   private def parsePact(s: String): Try[Pact] = {
     Try(Json.parse(s).as[Pact])
   }

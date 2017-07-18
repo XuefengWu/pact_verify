@@ -37,8 +37,8 @@ object Main extends App {
     }
   }
 
-  LogFactory.getFactory.setAttribute(LogFactoryImpl.LOG_PROPERTY, "org.apache.commons.logging.impl.SimpleLog")
   if(args.length > 2) {
+    LogFactory.getFactory.setAttribute(LogFactoryImpl.LOG_PROPERTY, "org.apache.commons.logging.impl.SimpleLog")
     val logLevel = args(2)
     System.setProperty("org.apache.commons.logging.simplelog.defaultlog", logLevel)
   }

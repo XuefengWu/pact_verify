@@ -2,6 +2,8 @@ package com.thoughtworks.verify.pact
 
 import java.io.File
 
+import org.apache.commons.logging.LogFactory
+import org.apache.commons.logging.impl.LogFactoryImpl
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json
 
@@ -17,6 +19,9 @@ class PactFileSpec extends FlatSpec with Matchers {
   implicit val consumerFormat = Json.format[Consumer]
 
   implicit val pactFormat = Json.format[Pact]
+
+  private val sss = LogFactory.getFactory.setAttribute(LogFactoryImpl.LOG_PROPERTY, "org.apache.commons.logging.impl.SimpleLog")
+  private val ss = System.setProperty("org.apache.commons.logging.simplelog.defaultlog","debug")
 
   "Pact File" should "parse pact json" in {
     val dir = new File("src/test/resources/pacts/placeholder")
@@ -44,6 +49,7 @@ class PactFileSpec extends FlatSpec with Matchers {
     pacts.size should be(1)
     val pact = pacts.head.pacts.head
     pact.get.interactions.head.description should be("login")
+    pact.get.source.get should be("before/test.json")
   }
 
   it should "parse wrong json file failed" in {
