@@ -111,13 +111,21 @@ class MatchingRulesSpec extends FlatSpec with Matchers {
   }
 
   it should "not match customer type when less field in object" in {
-
-
     val expected = """{"numbers":{"a":4,"b":5,"c":6}} """
     val expectedJsValue = Json.parse(expected)
     val rule1 = MatchingRule("$.body.numbers", "match", "type", None)
     val actual3 = Json.parse("""{"numbers":{"a":9,"b":2,"d":4}} """)
     val expectedErr = "match rule[MatchingRule($.body.numbers,match,type,None)] failed; expected field:[c] is not exists"
+    rule1.isMatchExpress(rule1.select(actual3).get, expectedJsValue) should be(Some(expectedErr))
+  }
+
+  it should "not match customer type when less tow field in object" in {
+    val expected = """{"numbers":{"a":4,"b":5,"c":6}} """
+    val expectedJsValue = Json.parse(expected)
+    val rule1 = MatchingRule("$.body.numbers", "match", "type", None)
+    val actual3 = Json.parse("""{"numbers":{"a":9,"d":4}} """)
+    val expectedErr = "match rule[MatchingRule($.body.numbers,match,type,None)] failed; expected field:[b] is not exists\n"+
+        "match rule[MatchingRule($.body.numbers,match,type,None)] failed; expected field:[c] is not exists"
     rule1.isMatchExpress(rule1.select(actual3).get, expectedJsValue) should be(Some(expectedErr))
   }
 

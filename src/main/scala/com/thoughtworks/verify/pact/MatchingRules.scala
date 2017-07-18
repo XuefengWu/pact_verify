@@ -100,21 +100,22 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       s"expectedFieldExpectedKeys: [${expectedFieldExpectedValueObj.value.map(_._1).mkString(",")}")
 
     expectedFieldExpectedValueObj.value.foldLeft[Option[String]](None)((acc, v) => {
-        val key = v._1
-        val value = v._2
-        logger.debug(s"expected key:[$key], actualFieldValue:[${Json.stringify(actual)}], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
-        if (actualObj.value.contains(key)) {
-          val actualValue = actualObj.value(key)
-          val res = isCustomerTypeFieldMath(actualValue, value)
-          logger.debug(s"matched: $res")
-          if (acc.isEmpty) {
-            res
-          } else {
-            acc.map(err => s"$err${res.map(v => s"\n$v").getOrElse("")}")
-          }
-        } else {
-          Some(s"match rule[$this] failed; expected field:[$key] is not exists")
-        }
+      val key = v._1
+      val value = v._2
+      logger.debug(s"expected key:[$key], actualFieldValue:[${Json.stringify(actual)}], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+      val res = if (actualObj.value.contains(key)) {
+        val actualValue = actualObj.value(key)
+        val _res = isCustomerTypeFieldMath(actualValue, value)
+        logger.debug(s"matched: ${_res}")
+        _res
+      } else {
+        Some(s"match rule[$this] failed; expected field:[$key] is not exists")
+      }
+      if (acc.isEmpty) {
+        res
+      } else {
+        acc.map(err => s"$err${res.map(v => s"\n$v").getOrElse("")}")
+      }
     })
   }
 
