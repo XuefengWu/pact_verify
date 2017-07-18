@@ -131,8 +131,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
 
   private def doSelect(node: JsValue, path: String): JsLookupResult = {
     logger.debug(s"doSelect path=[$path]")
-    parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
-      logger.debug(s"doSelect fieldName=[$v]")
+    val res = parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
       acc match {
         case JsDefined(o) =>
           v match {
@@ -143,6 +142,8 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
         case f => f
       }
     })
+    logger.debug(s"doSelect result=[$res]")
+    res
   }
 
   private def parseFields(path: String) = {
