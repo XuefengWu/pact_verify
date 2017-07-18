@@ -1,6 +1,7 @@
 package com.thoughtworks.verify.pact
 
 import com.thoughtworks.verify.junit.Failure
+import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Success
 
@@ -19,24 +20,28 @@ case class Interaction(description: String,
       case _ if expect.getBody().isDefined  =>
         ResponseBodyJson.tryHardParseJsValue(actual.body) match {
           case Success(jsValue) => expect.isMatch(jsValue) match {
-            case Some(err) => Some(Failure(actual.statusText, generateBodyFailureMessage(err,request, actual, expect)))
+            case Some(err) => Some(Failure(actual.statusText, generateBodyMatchFailureMessage(err,request, jsValue, expect)))
             case None => None
           }
           case scala.util.Failure(f) => Some(Failure(actual.statusText,
-                        generateBodyFailureMessage(f.getStackTrace.mkString("/n"),request, actual, expect)))
+            generateBodyParseFailureMessage(f.getStackTrace.mkString("/n"),request, actual)))
         }
       case _ => None
     }
   }
 
-  private def generateBodyFailureMessage(err:String,request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
-    s"request url: ${request.path}\n 错误:$err \n 期望:${expect.getBody().get}\n 实际返回:${actual.body}\n " +
+  private def generateBodyParseFailureMessage(err:String, request: PactRequest, actual: HttpResponse) = {
+    s"request url: ${request.path}\n Parse failure:$err \n actual:${actual.body}\n "
+  }
+
+  private def generateBodyMatchFailureMessage(err:String, request: PactRequest, actual: JsValue, expect: PactResponse) = {
+    s"request url: ${request.path}\n Match failure:$err \n expect:${expect.getBody().get.map(Json.stringify).getOrElse("")}\n " +
+      s"actual:${Json.stringify(actual)}\n " +
       s"request body: ${request.body.map(_.toString())}"
   }
 
   private def generateStatuesFailureMessage(request: PactRequest, actual: HttpResponse, expect: PactResponse) = {
-    s"request url: ${request.path}\n Status: ${expect.status} != ${actual.status} \n${actual.body}\n " +
-      s"request body: ${request.body.map(_.toString())}"
+    s"request url: ${request.path}\n Status Do not match: ${expect.status} != ${actual.status}"
   }
 
 
