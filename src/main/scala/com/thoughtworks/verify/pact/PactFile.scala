@@ -71,7 +71,7 @@ object PactFile {
       case Failure(t) => t.addSuppressed(new Exception(f.getAbsolutePath))
       case _ =>
     }
-    pactTry
+    pactTry.map(_.copy(source = Some(s"${f.getParent}/${f.getName}")))
   }
   private def parsePact(s: String): Try[Pact] = {
     Try(Json.parse(s).as[Pact])

@@ -6,4 +6,4 @@ package com.thoughtworks.verify.pact
 case class Provider(name:String)
 case class Consumer(name:String)
 case class Pact(provider: Option[Provider],consumer:Option[Consumer], repeat: Option[Int],
-                cookies: Option[String], interactions: Seq[Interaction])
+                cookies: Option[String], interactions: Seq[Interaction], source:Option[String] = None)

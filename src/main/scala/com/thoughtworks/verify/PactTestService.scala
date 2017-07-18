@@ -13,7 +13,7 @@ import scala.util.Success
   */
 object PactTestService {
 
-  private def testPact(pactWS: PactWS,  pact: Pact, pactFile: String): TestSuite = {
+  private def testPact(pactWS: PactWS,  pact: Pact): TestSuite = {
     val startPact = System.currentTimeMillis()
 
     var preResponseOpt: Option[HttpResponse] = None
@@ -51,8 +51,9 @@ object PactTestService {
           case scala.util.Failure(e) => (Some(Error(e.getMessage, e.getStackTrace.map(_.toString).mkString("\n"))), None)
         }
 
-        val spend = (System.currentTimeMillis() - start) / 1000
-        TestCase("assertions", pactFile, interaction.description, "status", spend.toString, error, failure)
+        val spend = (System.currentTimeMillis() - start)
+        TestCase("assertions", pact.source.getOrElse(""),
+          interaction.description, "status", spend.toString, error, failure)
       }
     generateTestSuite(pact, startPact, result)
   }
@@ -85,7 +86,7 @@ object PactTestService {
     val throwables = failurePactSeq.map(_.failed.get)
     val pactSeq = successSeq.map(_.get)
     val testSuites: Seq[TestSuite] =
-      parseFailures(pacts.name,throwables) :: parseSuccesses(pactWS,pactSeq,pacts.name).toList
+      parseFailures(pacts.name,throwables) :: parseSuccesses(pactWS,pactSeq).toList
 
     pactWS.close()
     val spend = (System.currentTimeMillis() - start) / 1000
@@ -93,8 +94,8 @@ object PactTestService {
       testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
   }
 
-  private def parseSuccesses(pactWS: PactWS,pactSeq: Seq[Pact],pactFile: String): Seq[TestSuite] =
-    pactSeq.map(v => testPact(pactWS, v,pactFile))
+  private def parseSuccesses(pactWS: PactWS,pactSeq: Seq[Pact]): Seq[TestSuite] =
+    pactSeq.map(v => testPact(pactWS, v))
 
   private def parseFailures(name: String, fails: Seq[Throwable]): TestSuite = {
     val assertions = "parse json file"
