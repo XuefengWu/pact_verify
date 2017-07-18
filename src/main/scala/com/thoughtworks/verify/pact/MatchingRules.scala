@@ -45,7 +45,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       case true =>
         val pattern = Pattern.compile(expression)
         val actualStr = actual.asInstanceOf[JsString].value
-        logger.trace(s"expression=[$expression], actual=[${actualStr}]")
+        logger.debug(s"expression=[$expression], actual=[${actualStr}]")
         Try(pattern.matcher(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
@@ -56,7 +56,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       case true =>
         val df = new SimpleDateFormat(expression)
         val actualStr = actual.asInstanceOf[JsString].value
-        logger.trace(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
+        logger.debug(s"expression=[$expression], actual=[${actualStr}], expect=[${df.format(new Date())}]")
         Try(df.parse(actualStr)).fold[Option[String]](e => Some(e.getMessage), _ => None)
       case false => None
     }
@@ -96,10 +96,12 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
       if (acc.isEmpty) {
         val key = v._1
         val value = v._2
-        logger.trace(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
+        logger.debug(s"expected key:[$key], value:[$actual], isContains:[${actualObj.value.contains(key)}],acc=[$acc]")
         if (actualObj.value.contains(key)) {
           val actualValue = actualObj.value(key)
-          isCustomerTypeFieldMath(actualValue, value)
+          val res = isCustomerTypeFieldMath(actualValue, value)
+          logger.debug(s"matched: $res")
+          res
         } else {
           Some(s"match rule[$this] failed; expected field:[$key] is not exists")
         }
@@ -118,7 +120,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
 
   def select(body: JsValue): JsLookupResult = {
     val path = selection.drop(6).dropWhile(_ == '.') //drop [$.body.]
-    logger.trace(s"select path=[$path]")
+    logger.debug(s"select path=[$path]")
     path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
       acc match {
         case JsDefined(o) => doSelect(o, v)
@@ -128,9 +130,9 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   }
 
   private def doSelect(node: JsValue, path: String): JsLookupResult = {
-    logger.trace(s"doSelect path=[$path]")
+    logger.debug(s"doSelect path=[$path]")
     parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
-      logger.trace(s"doSelect fieldName=[$v]")
+      logger.debug(s"doSelect fieldName=[$v]")
       acc match {
         case JsDefined(o) =>
           v match {
