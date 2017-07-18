@@ -89,7 +89,7 @@ object PactTestService {
       parseFailures(pacts.name,throwables) :: parseSuccesses(pactWS,pactSeq).toList
 
     pactWS.close()
-    val spend = (System.currentTimeMillis() - start) / 1000
+    val spend = (System.currentTimeMillis() - start)
     TestSuites("disabled", testSuites.map(_.errors).reduce(_ + _),
       testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
   }
