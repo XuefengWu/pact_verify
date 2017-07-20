@@ -59,9 +59,7 @@ object Main extends App {
     System.exit(-1)
   }
 
-  val pactFs: Seq[TestSuites] = pactsList.map(pacts =>
-    Await.result(Future(PactTestService.testPacts(pacts,urlRoot)),Duration(90, SECONDS))
-  )
+  val pactFs: Seq[TestSuites] = PactTestService.testPacts(pactsList, urlRoot)
 
   println("execute tests finished")
 
@@ -73,6 +71,6 @@ object Main extends App {
   } {
     println(s"\n${ts.name}::${tc.name} \n ${fail.message}")
   }
-  pactFs.map(tss => JunitReport.dumpJUnitReport(reportDirPath, tss))
+  JunitReport.dumpJUnitReport(reportDirPath, pactFs)
   println("dump report finished")
 }

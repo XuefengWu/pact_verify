@@ -1,5 +1,6 @@
 package com.thoughtworks.pact.verify.junit
 
+
 import scala.xml.Elem
 
 /**
@@ -7,7 +8,11 @@ import scala.xml.Elem
   */
 object JunitReport {
 
-  def dumpJUnitReport(dir: String, testSuites: TestSuites): Unit = {
+  def dumpJUnitReport(reportDirPath: String, testSuitesSeq: Seq[TestSuites]): Unit = {
+    testSuitesSeq.map(tss => dumpJUnitReport(reportDirPath, tss))
+  }
+
+  private def dumpJUnitReport(dir: String, testSuites: TestSuites): Unit = {
     val report = generateJUnitTestSuitesReport(testSuites)
     xml.XML.save(s"$dir/${testSuites.name}.xml", report, "UTF-8", true)
   }

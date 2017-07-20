@@ -2,10 +2,15 @@ package com.thoughtworks.pact.verify
 
 import java.util.Date
 
+import com.thoughtworks.pact.verify.Main.{pactsList, urlRoot}
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
 
+import scala.concurrent.duration.{Duration, SECONDS}
+import scala.concurrent.{Await, Future}
 import scala.util.Success
+
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -72,6 +77,12 @@ object PactTestService {
     val cookies: Seq[String] = cookie.map(_.split(";").toSeq).getOrElse(Nil)
     val mergedCookies: Seq[String] = requestCookies ++ responseCookies ++ cookies
     request.copy(cookies = Some(mergedCookies.distinct.mkString(";")))
+  }
+
+  def testPacts(pactsSeq: Seq[Pacts],urlRoot: String): List[TestSuites] = {
+    pactsList.map(pacts =>
+      Await.result(Future(PactTestService.testPacts(pacts,urlRoot)),Duration(90, SECONDS))
+    )
   }
 
   def testPacts(pacts: Pacts,urlRoot: String): TestSuites = {
