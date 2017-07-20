@@ -1,4 +1,4 @@
-package com.thoughtworks.pact.api;
+package com.thoughtworks.pact.verify.api;
 
 import com.thoughtworks.pact.verify.PactTestService;
 import com.thoughtworks.pact.verify.junit.JunitReport;
@@ -9,7 +9,6 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.impl.LogFactoryImpl;
 
 import java.io.File;
-import java.util.List;
 
 /**
  * Created by xfwu on 20/07/2017.
