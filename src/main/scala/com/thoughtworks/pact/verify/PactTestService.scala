@@ -53,9 +53,9 @@ object PactTestService {
         case scala.util.Failure(e) => (Some(Error(e.getMessage, e.getStackTrace.map(_.toString).mkString("\n"))), None)
       }
 
-      val spend = (System.currentTimeMillis() - start)
+      val spend = (System.currentTimeMillis() - start) / 1000
       TestCase("assertions", pact.source.getOrElse(""),
-        interaction.description, "status", spend.toString, error, failure)
+        interaction.description, "status", spend, error, failure)
     }
     generateTestSuite(pact, startPact, result.filterNot(_.name.startsWith("_before_")))
   }
@@ -63,10 +63,10 @@ object PactTestService {
   private def generateTestSuite(pact: Pact, startPact: Long, result: Seq[TestCase]) = {
     val errorsCount = result.count(_.error.isDefined)
     val failuresCount = result.count(_.failure.isDefined)
-    val spendPact = (System.currentTimeMillis() - startPact)
+    val spendPact = (System.currentTimeMillis() - startPact) / 1000
     val name = pact.provider.map(_.name).getOrElse("target provider")
     TestSuite("disabled", errorsCount, failuresCount, "hostname", name, name, "pkg", "skipped",
-      result.size, spendPact.toString, System.currentTimeMillis().toString, result)
+      result.size, spendPact, System.currentTimeMillis().toString, result)
   }
 
   private def mergeCookie(request: PactRequest, cookiesOpt: Option[Seq[String]], cookie: Option[String]): PactRequest = {
@@ -112,11 +112,11 @@ object PactTestService {
   private def parseFailures(name: String, fails: Seq[Throwable]): TestSuite = {
     val assertions = "parse json file"
     val status = "fail"
-    val time = "0"
+    val time = 0.01
     val tcs = fails.map(f => TestCase(assertions, f.getSuppressed.toSeq(0).getMessage, "",
       status, time, Some(Error("parse fail", f.getStackTrace.mkString("/n"))), None))
     TestSuite("false", 0, fails.size, "", "",
-      name, name, "false", fails.size, "0", new Date().toString, tcs)
+      name, name, "false", fails.size, time, new Date().toString, tcs)
   }
 
 }

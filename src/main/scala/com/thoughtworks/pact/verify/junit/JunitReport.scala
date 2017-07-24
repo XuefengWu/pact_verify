@@ -24,13 +24,13 @@ object JunitReport {
   }
 
   private def generateJUnitTestSuiteReport(testSuite: TestSuite): Elem = {
-    <testsuite disabled=" " errors={testSuite.errors.toString} failures={testSuite.failures.toString} hostname=" " id=" " name={testSuite.name} package=" " skipped=" " tests={testSuite.tests.toString} time={testSuite.time} timestamp={testSuite.timestamp}>
+    <testsuite disabled=" " errors={testSuite.errors.toString} failures={testSuite.failures.toString} hostname=" " id=" " name={testSuite.name} package=" " skipped=" " tests={testSuite.tests.toString} time={testSuite.time.toString} timestamp={testSuite.timestamp}>
       {testSuite.cases.map(generateJUnitTestCaseReport)}
     </testsuite>
   }
 
   private def generateJUnitTestCaseReport(testCase: TestCase): Elem = {
-    <testcase assertions=" " classname={testCase.className} name={testCase.name} status=" " time={testCase.time}>
+    <testcase assertions=" " classname={testCase.className} name={testCase.name} status=" " time={testCase.time.toString}>
       {testCase.error.map(err => <error type={err.typ}>
       {err.message}
     </error>).getOrElse(xml.Null)}{testCase.failure.map(fail => <failure type={fail.typ}>
