@@ -2,7 +2,6 @@ package com.thoughtworks.pact.verify
 
 import java.util.Date
 
-import com.thoughtworks.pact.verify.Main.pactsList
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
 
@@ -78,8 +77,8 @@ object PactTestService {
     request.copy(cookies = Some(mergedCookies.distinct.mkString(";")))
   }
 
-  def testPacts(pactsSeq: Seq[Pacts],urlRoot: String): List[TestSuites] = {
-    pactsList.map(pacts => PactTestService.testPacts(pacts,urlRoot))
+  def testPacts(pactsSeq: List[Pacts],urlRoot: String): List[TestSuites] = {
+    pactsSeq.map(pacts => PactTestService.testPacts(pacts,urlRoot))
   }
 
   def testPacts(pacts: Pacts,urlRoot: String): TestSuites = {
