@@ -2,15 +2,14 @@ package com.thoughtworks.pact.verify
 
 import java.util.Date
 
-import com.thoughtworks.pact.verify.Main.{pactsList, urlRoot}
+import com.thoughtworks.pact.verify.Main.pactsList
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
 
-import scala.concurrent.duration.{Duration, SECONDS}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.{Duration, MINUTES}
 import scala.concurrent.{Await, Future}
 import scala.util.Success
-
-import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -80,9 +79,7 @@ object PactTestService {
   }
 
   def testPacts(pactsSeq: Seq[Pacts],urlRoot: String): List[TestSuites] = {
-    pactsList.map(pacts =>
-      Await.result(Future(PactTestService.testPacts(pacts,urlRoot)),Duration(90, SECONDS))
-    )
+    pactsList.map(pacts => PactTestService.testPacts(pacts,urlRoot))
   }
 
   def testPacts(pacts: Pacts,urlRoot: String): TestSuites = {
@@ -108,8 +105,10 @@ object PactTestService {
       testSuites.map(_.failures).reduce(_ + _), pacts.name, "", spend.toString, testSuites)
   }
 
-  private def parseSuccesses(pactWS: PactWS, pactSeq: Seq[Pact]): Seq[TestSuite] =
-    pactSeq.map(v => testPact(pactWS, v))
+  private def parseSuccesses(pactWS: PactWS, pactSeq: Seq[Pact]): Seq[TestSuite] = {
+    val verifyResults: Seq[Future[TestSuite]] = pactSeq.map(v => Future(testPact(pactWS, v)))
+    Await.result(Future.sequence(verifyResults), Duration(15,MINUTES))
+  }
 
   private def parseFailures(name: String, fails: Seq[Throwable]): TestSuite = {
     val assertions = "parse json file"
