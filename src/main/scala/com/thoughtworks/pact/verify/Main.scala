@@ -16,6 +16,7 @@ import scala.concurrent.{Await, Future}
 object Main extends App {
 
   println("welcome play pact v0.4.0")
+  val start = System.currentTimeMillis()
 
   val root = if (args.length < 1) {
     println("Usage: java -jar pact-xx.jar pact_dir url_root")
@@ -61,7 +62,7 @@ object Main extends App {
 
   val pactFs: Seq[TestSuites] = PactTestService.testPacts(pactsList, urlRoot)
 
-  println("execute tests finished")
+  println(s"execute tests finished: spend: ${(System.currentTimeMillis() - start)/1000} s")
 
   for {
     f <- pactFs
