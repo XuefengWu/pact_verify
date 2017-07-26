@@ -113,7 +113,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
 
   override def send(request: PactRequest): Try[HttpResponse] = {
     val responseF: Future[Try[CloseableHttpResponse]] = sendRequest(request)
-    Try(Await.result(responseF.map(_.map(res => buildHttpResponse(res,request))), Duration(60,SECONDS))).flatten
+    Try(Await.result(responseF.map(_.map(res => buildHttpResponse(res,request))), Duration(90,SECONDS))).flatten
   }
 
   private def buildHttpResponse(response: CloseableHttpResponse,request: PactRequest) = new HttpResponse {
