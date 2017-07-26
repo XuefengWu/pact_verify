@@ -4,6 +4,7 @@ import java.util.Date
 
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
+import org.apache.commons.logging.LogFactory
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, MINUTES}
@@ -15,6 +16,7 @@ import scala.util.Success
   */
 object PactTestService {
 
+  private val logger = LogFactory.getFactory.getInstance(this.getClass)
   private def testPact(pactWS: PactWS, pact: Pact): TestSuite = {
     val startPact = System.currentTimeMillis()
 
@@ -41,6 +43,7 @@ object PactTestService {
       val start = System.currentTimeMillis()
       //创建参数，参数的连续使用
       val request: PactRequest = PlaceHolder.replacePlaceHolderParameter(interaction.request, preResponseOpt)
+      logger.trace(s"${interaction.description}")
       val mergedRequest = mergeCookie(request, preCookiesOpt, pact.cookies)
       val actualTry = pactWS.send(mergedRequest)
 
