@@ -16,14 +16,14 @@ case class Interaction(description: String,
     val expect = this.response
     actual match {
       case _ if expect.status != actual.status =>
-        Some(Failure(actual.statusText, generateStatuesFailureMessage(request, actual, expect)))
+        Some(Failure("status code failure", generateStatuesFailureMessage(request, actual, expect)))
       case _ if expect.getBody().isDefined  =>
         ResponseBodyJson.tryHardParseJsValue(actual.body) match {
           case Success(jsValue) => expect.isMatch(jsValue) match {
-            case Some(err) => Some(Failure(actual.statusText, generateBodyMatchFailureMessage(err,request, jsValue, expect)))
+            case Some(err) => Some(Failure("context match failure", generateBodyMatchFailureMessage(err,request, jsValue, expect)))
             case None => None
           }
-          case scala.util.Failure(f) => Some(Failure(actual.statusText,
+          case scala.util.Failure(f) => Some(Failure("body parse failure",
             generateBodyParseFailureMessage(f.getStackTrace.mkString("/n"),request, actual)))
         }
       case _ => None
