@@ -11,6 +11,7 @@ import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
 import org.apache.http.{Consts, NameValuePair}
 
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, SECONDS}
 import scala.concurrent.{Await, Future}
@@ -24,7 +25,7 @@ trait PactWS {
 
 class PactWSImpl(urlRoot: String) extends PactWS {
 
-  private val httpClient: CloseableHttpClient = HttpClients.createDefault()
+  private val httpCLients: ListBuffer[CloseableHttpClient] = ListBuffer[CloseableHttpClient]()
   private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   private def fullUrl(path: String): String = {
@@ -35,10 +36,12 @@ class PactWSImpl(urlRoot: String) extends PactWS {
     }
   }
 
-  private def sendRequest(request: PactRequest): Future[Try[CloseableHttpResponse]] = {
+  private def sendRequest(request: PactRequest): (Future[Try[CloseableHttpResponse]],CloseableHttpClient) = {
     val method = buildRequest(request.path, buildRequestBody(request),
       request.method.toString(), request.contentType, request.cookies, request.form)
-    Future(Try(httpClient.execute(method)))
+    val httpClient: CloseableHttpClient = HttpClients.createDefault()
+    httpCLients += httpClient
+    (Future(Try(httpClient.execute(method))),httpClient)
   }
 
   private def setCookie(request: HttpRequestBase, cookies: Option[String]): HttpRequestBase = {
@@ -114,9 +117,12 @@ class PactWSImpl(urlRoot: String) extends PactWS {
   }
 
   override def send(request: PactRequest): Try[HttpResponse] = {
-    val responseF: Future[Try[CloseableHttpResponse]] = sendRequest(request)
+    val (responseF: Future[Try[CloseableHttpResponse]],client:CloseableHttpClient) = sendRequest(request)
     val triedResponse = Try(Await.result(responseF.map(_.map(res => buildHttpResponse(res, request))), Duration(90, SECONDS))).flatten
-    triedResponse.recover{case error: Throwable => logger.error(error.getMessage, error)}
+    triedResponse.recover{case error: Throwable => {
+                      logger.error(error.getMessage, error)
+                      httpCLients -= client
+                      client.close()}}
     triedResponse
   }
 
@@ -134,7 +140,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
   }
 
   def close(): Unit = {
-    httpClient.close()
+    httpCLients.foreach(_.close())
   }
 
 }
