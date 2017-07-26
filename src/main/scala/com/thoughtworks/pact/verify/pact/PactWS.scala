@@ -2,6 +2,7 @@ package com.thoughtworks.pact.verify.pact
 
 import java.util
 
+import org.apache.commons.logging.LogFactory
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods._
 import org.apache.http.entity.StringEntity
@@ -24,6 +25,7 @@ trait PactWS {
 class PactWSImpl(urlRoot: String) extends PactWS {
 
   private val httpClient: CloseableHttpClient = HttpClients.createDefault()
+  private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   private def fullUrl(path: String): String = {
     if (!path.startsWith("http")) {
@@ -113,7 +115,10 @@ class PactWSImpl(urlRoot: String) extends PactWS {
 
   override def send(request: PactRequest): Try[HttpResponse] = {
     val responseF: Future[Try[CloseableHttpResponse]] = sendRequest(request)
-    Try(Await.result(responseF.map(_.map(res => buildHttpResponse(res,request))), Duration(90,SECONDS))).flatten
+    val triedResponse = Await.result(responseF.map(_.map(res => buildHttpResponse(res, request))), Duration(90, SECONDS))
+    val result = Try(triedResponse).flatten
+    result.recover{case error: Throwable => logger.error(error.getMessage, error)}
+    result
   }
 
   private def buildHttpResponse(response: CloseableHttpResponse,request: PactRequest) = new HttpResponse {
