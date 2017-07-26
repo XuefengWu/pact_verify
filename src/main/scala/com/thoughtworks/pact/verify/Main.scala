@@ -6,10 +6,6 @@ import com.thoughtworks.pact.verify.junit.{JunitReport, TestSuites}
 import com.thoughtworks.pact.verify.pact.PactFile
 import org.apache.commons.logging.LogFactory
 import org.apache.commons.logging.impl.LogFactoryImpl
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, SECONDS}
-import scala.concurrent.{Await, Future}
 /**
   * Created by xfwu on 12/07/2017.
   */
