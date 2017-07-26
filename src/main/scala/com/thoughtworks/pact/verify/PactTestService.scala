@@ -47,7 +47,9 @@ object PactTestService {
       val (error, failure) = actualTry match {
         case Success(actual) =>
           setForNextRequest(actual)
-          val error = if (actual.status >= 500) Some(Error(actual.statusText, actual.body)) else None
+          val error = if (actual.status >= 500)
+                          Some(Error(s"status code error: ${actual.status}", s"reason: ${actual.statusText}, body:${actual.body}"))
+                      else None
           val failure = interaction.assert(request, actual)
           (error, failure)
         case scala.util.Failure(e) => (Some(Error(e.getMessage, e.getStackTrace.map(_.toString).mkString("\n"))), None)
