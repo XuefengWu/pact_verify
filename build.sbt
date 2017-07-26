@@ -1,7 +1,7 @@
 lazy val root = (project in file(".")).
   settings(
     name := "pact_verify",
-    version := "0.8.4",
+    version := "0.9.2",
     scalaVersion := "2.12.2"
   )
 
