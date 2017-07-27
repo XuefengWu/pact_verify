@@ -16,28 +16,28 @@ case class Interaction(description: String,
     val expect = this.response
     actual match {
       case _ if expect.status != actual.status =>
-        Some(Failure("status code failure", generateStatuesFailureMessage(request, actual, expect)))
+        Some(Failure("status code failure",
+          generateStatuesFailureMessage(request, actual, expect), Some(actual.body)))
       case _ if expect.getBody().isDefined  =>
         ResponseBodyJson.tryHardParseJsValue(actual.body) match {
           case Success(jsValue) => expect.isMatch(jsValue) match {
-            case Some(err) => Some(Failure("context match failure", generateBodyMatchFailureMessage(err,request, jsValue, expect)))
+            case Some(err) => Some(Failure("context match failure",
+              generateBodyMatchFailureMessage(err,request), Some(Json.stringify(jsValue))))
             case None => None
           }
           case scala.util.Failure(f) => Some(Failure("body parse failure",
-            generateBodyParseFailureMessage(f.getStackTrace.mkString("/n"),request, actual)))
+            generateBodyParseFailureMessage(f.getStackTrace.mkString("/n"),request),Some(actual.body)))
         }
       case _ => None
     }
   }
 
-  private def generateBodyParseFailureMessage(err:String, request: PactRequest, actual: HttpResponse) = {
-    s"request url: ${request.path}\n Parse failure:$err \n actual:${actual.body}\n "
+  private def generateBodyParseFailureMessage(err:String, request: PactRequest) = {
+    s"request url: ${request.path}\n Parse failure:$err \n"
   }
 
-  private def generateBodyMatchFailureMessage(err:String, request: PactRequest, actual: JsValue, expect: PactResponse) = {
-    s"request url: ${request.path}\n Match failure:$err \n expect:${expect.getBody().get.map(Json.stringify).getOrElse("")}\n " +
-      s"actual:${Json.stringify(actual)}\n " +
-      s"request body: ${request.body.map(_.toString())}"
+  private def generateBodyMatchFailureMessage(err:String, request: PactRequest) = {
+    s"request url: ${request.path}\n Match failure:$err \n"
   }
 
   private def generateStatuesFailureMessage(request: PactRequest, actual: HttpResponse, expect: PactResponse) = {

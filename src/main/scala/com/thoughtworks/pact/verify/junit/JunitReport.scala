@@ -1,20 +1,25 @@
 package com.thoughtworks.pact.verify.junit
 
 
-import scala.xml.Elem
+import java.io.File
+
+import scala.xml.{Elem, PCData}
 
 /**
   * Created by xfwu on 12/07/2017.
   */
 object JunitReport {
 
-  def dumpJUnitReport(reportDirPath: String, testSuitesSeq: Seq[TestSuites]): Unit = {
+  def dumpJUnitReport(reportDirPath: String, testSuitesSeq: Seq[TestSuites]): Seq[String] = {
     testSuitesSeq.map(tss => dumpJUnitReport(reportDirPath, tss))
   }
 
-  private def dumpJUnitReport(dir: String, testSuites: TestSuites): Unit = {
+  private def dumpJUnitReport(dir: String, testSuites: TestSuites): String = {
     val report = generateJUnitTestSuitesReport(testSuites)
-    xml.XML.save(s"$dir/${testSuites.name}.xml", report, "UTF-8", true)
+    new File(dir).mkdirs()
+    val file = s"$dir/${testSuites.name}.xml"
+    xml.XML.save(file, report, "UTF-8", true)
+    file
   }
 
   private def generateJUnitTestSuitesReport(testSuites: TestSuites): Elem = {
@@ -35,6 +40,9 @@ object JunitReport {
       {err.message}
     </error>).getOrElse(xml.Null)}{testCase.failure.map(fail => <failure type={fail.typ}>
       {fail.message}
+
+
+      {fail.detail.map(v => new PCData(s"\n${v}\n")).getOrElse("")}
     </failure>).getOrElse(xml.Null)}
     </testcase>
   }
