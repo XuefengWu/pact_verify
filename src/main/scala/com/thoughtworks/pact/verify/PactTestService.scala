@@ -59,8 +59,9 @@ object PactTestService {
       }
 
       val spend = (System.currentTimeMillis() - start) / 1000
+      val status = error.map(_.typ).getOrElse(failure.map(_.typ).getOrElse("OK"))
       TestCase("assertions", pact.source.getOrElse(""),
-        interaction.description, error.map(_.typ).getOrElse(failure.map(_.typ).getOrElse("OK")), spend, error, failure)
+        interaction.description, status, spend, error, failure)
     }
     generateTestSuite(pact, startPact, result.filterNot(_.name.startsWith("_before_")))
   }
@@ -119,7 +120,7 @@ object PactTestService {
     val status = "fail"
     val time = 0.01
     val tcs = fails.map(f => TestCase(assertions, f.getSuppressed.toSeq(0).getMessage, "",
-      "parse fail", time, Some(Error("parse fail", f.getStackTrace.mkString("/n"))), None))
+      "parse error", time, Some(Error("parse fail", f.getStackTrace.mkString("/n"))), None))
     TestSuite("false", 0, fails.size, "", "",
       name, name, "false", fails.size, time, new Date().toString, tcs)
   }
