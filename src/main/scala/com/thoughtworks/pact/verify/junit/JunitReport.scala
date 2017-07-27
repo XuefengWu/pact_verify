@@ -30,7 +30,7 @@ object JunitReport {
   }
 
   private def generateJUnitTestCaseReport(testCase: TestCase): Elem = {
-    <testcase assertions=" " classname={testCase.className} name={testCase.name} status=" " time={testCase.time.toString}>
+    <testcase assertions={testCase.assertions} classname={testCase.className} name={testCase.name} status={testCase.status} time={testCase.time.toString}>
       {testCase.error.map(err => <error type={err.typ}>
       {err.message}
     </error>).getOrElse(xml.Null)}{testCase.failure.map(fail => <failure type={fail.typ}>
