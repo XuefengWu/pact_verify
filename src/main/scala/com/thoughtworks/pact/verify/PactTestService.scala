@@ -29,7 +29,7 @@ object PactTestService {
 
     def setForNextRequest(actual: HttpResponse,interaction: Interaction) = {
       if (actual.status < 400) {
-        parametersStack ++= PlaceHolder.getParameterFormBody(Json.parse(actual.body),interaction.setParameters)
+        parametersStack ++= PlaceHolder.getParameterFormBody(Json.parse(actual.body),interaction.setParameters,parametersStack.toMap)
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
           //println(s"SetCookies: ${cookies.mkString(";")}")

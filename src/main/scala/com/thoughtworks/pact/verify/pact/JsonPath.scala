@@ -31,7 +31,7 @@ object JsonPath {
   private def convertToJsValue(o: Object):JsValue = {
     o match {
       case v: java.lang.Boolean => JsBoolean(v)
-      case v:Number => JsNumber(BigDecimal.valueOf(v.doubleValue()))
+      case v: Number => JsNumber(BigDecimal.valueOf(v.doubleValue()))
       case v: String =>  JsString(v)
       case v: JSONArray =>  Json.parse(v.toJSONString)
       case map: java.util.LinkedHashMap[String,Object] =>
