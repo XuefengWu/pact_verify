@@ -51,11 +51,11 @@ object PactTestService {
         case Success(actual) =>
           setForNextRequest(actual)
           val error = if (actual.status >= 500)
-                          Some(Error(s"status code error: ${actual.status}", s"reason: ${actual.statusText}, body:${actual.body}"))
+                          Some(Error(s"status code error", s"status code error: ${actual.status}", Some(s"reason: ${actual.statusText}, body:${actual.body}")))
                       else None
           val failure = interaction.assert(request, actual)
           (error, failure)
-        case scala.util.Failure(e) => (Some(Error(e.getMessage, e.getStackTrace.map(_.toString).mkString("\n"))), None)
+        case scala.util.Failure(e) => (Some(Error(e.getMessage,e.getMessage,Some(e.getStackTrace.map(_.toString).mkString("\n")))), None)
       }
 
       val spend = (System.currentTimeMillis() - start) / 1000
@@ -120,9 +120,17 @@ object PactTestService {
     val status = "fail"
     val time = 0.01
     val tcs = fails.map(f => TestCase(assertions, f.getSuppressed.toSeq(0).getMessage, "",
-      "parse error", time, Some(Error("parse fail", f.getStackTrace.mkString("/n"))), None))
+      "parse error", time, Some(Error("parse fail", extractParseJsonFailureMessage(f.getMessage),
+        Some(s"${f.getMessage} \n\n${f.getStackTrace.map(_.toString).mkString("/n")}"))), None))
     TestSuite("false", 0, fails.size, "", "",
       name, name, "false", fails.size, time, new Date().toString, tcs)
+  }
+
+  def extractParseJsonFailureMessage(message: String): String = {
+    val lines = message.split("\n")
+    val head = lines.head.trim
+    val lineNumber = lines.last.trim.drop(2).dropRight(2)
+    s"$head[$lineNumber]"
   }
 
 }
