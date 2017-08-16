@@ -20,7 +20,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   def isBodyMatch(body: JsValue, expectedBody: JsValue): Option[String] = {
-    select(body) match {
+    JsonPath.select(body,selection) match {
       case JsDefined(o) => isMatchExpress(o, expectedBody)
       case _ if mx.isDefined && mx.get.typ == "min" && mx.get.value == 0 => None
       case err => Some(err.toString)
@@ -63,7 +63,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
   }
 
   private def isCustomerTypeMatch(actualFieldValue: JsValue, expectedBody: JsValue): Option[String] = {
-    select(expectedBody) match {
+    JsonPath.select(expectedBody,selection) match {
       case JsDefined(expectedFieldExpectedValue) =>
         val res = isCustomerTypeFieldMath(actualFieldValue, expectedFieldExpectedValue)
         logger.debug(s"isCustomerTypeMatch:\nactualFieldValue:${Json.stringify(actualFieldValue)}\n" +
@@ -126,48 +126,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     case "boolean" => Try(fieldValue.asInstanceOf[JsBoolean]).fold[Option[String]](e => Some(e.toString), _ => None)
   }
 
-  def select(body: JsValue): JsLookupResult = {
-    val path = selection.drop(6).dropWhile(_ == '.') //drop [$.body.]
-    logger.debug(s"select path=[$path]")
-    path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
-      acc match {
-        case JsDefined(o) => doSelect(o, v)
-        case f => f
-      }
-    })
-  }
 
-  private def doSelect(node: JsValue, path: String): JsLookupResult = {
-    logger.debug(s"doSelect path=[$path]")
-    val res = parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
-      acc match {
-        case JsDefined(o) =>
-          v match {
-            case f: String if f.isEmpty => acc
-            case f: String => acc \ f
-            case i: Int => acc \ i
-          }
-        case f => f
-      }
-    })
-    logger.debug(s"doSelect result=[$res]")
-    res
-  }
-
-  private def parseFields(path: String) = {
-    if (path.contains("[")) {
-      val fields = path.split("\\[").toSeq match {
-        case Seq(field, first) => Seq(field, first.dropRight(1).toInt)
-        case Seq(field, first, second) => Seq(field, first.dropRight(1).toInt, second.dropRight(1).toInt)
-      }
-      fields.filterNot({
-        case v: String => v.isEmpty
-        case _ => false
-      })
-    } else {
-      Seq(path)
-    }
-  }
 }
 
 object MatchingRules {
