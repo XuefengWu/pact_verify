@@ -1,6 +1,7 @@
 package com.thoughtworks.pact.verify.pact
 
 import com.thoughtworks.pact.verify.junit.Failure
+import org.apache.commons.lang3.exception.ExceptionUtils
 import play.api.libs.json.{JsValue, Json}
 
 import scala.util.Success
@@ -27,14 +28,15 @@ case class Interaction(description: String,
             case None => None
           }
           case scala.util.Failure(f) => Some(Failure("body parse failure",
-            generateBodyParseFailureMessage(f.getStackTrace.mkString("/n"),request),Some(actual.body)))
+            generateBodyParseFailureMessage(f,request),Some(actual.body)))
         }
       case _ => None
     }
   }
 
-  private def generateBodyParseFailureMessage(err:String, request: PactRequest) = {
-    s"request url: ${request.path}\n Parse failure:$err \n"
+  private def generateBodyParseFailureMessage(err: Throwable, request: PactRequest) = {
+    val errorDetail = ExceptionUtils.getStackTrace(err)
+    s"request url: ${request.path}\n Parse failure:$errorDetail \n"
   }
 
   private def generateBodyMatchFailureMessage(err:String, request: PactRequest) = {

@@ -2,6 +2,7 @@ package com.thoughtworks.pact.verify.pact
 
 import java.util
 
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.apache.commons.logging.LogFactory
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods._
@@ -131,7 +132,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
     override val headers: Map[String, Seq[String]] = response.getAllHeaders.map(h => (h.getName,Seq(h.getValue))).toMap
 
     override val body: String = Try(EntityUtils.toString(response.getEntity))
-                                .recover({case t:Throwable => s"${fullUrl(request.path)}\n${t.getStackTrace.mkString("/n")}"}).get
+                                .recover({case t:Throwable => s"${fullUrl(request.path)}\n${ExceptionUtils.getStackTrace(t)}"}).get
 
     override val status: Int = response.getStatusLine.getStatusCode
 
