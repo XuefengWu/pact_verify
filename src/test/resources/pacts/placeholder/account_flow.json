@@ -9,29 +9,6 @@
   "cookies": "user=1",
   "interactions": [
     {
-      "description": "login",
-      "request": {
-        "method": "post",
-        "path": "/api/login",
-        "body": {
-          "userId": "",
-          "username": "admin",
-          "password": "password",
-          "loginToken": ""
-        }
-      },
-      "response": {
-        "status": 200,
-        "body": {
-          "loginToken": "xxxyyy",
-          "username": "admin"
-        }
-      },
-      "setParameters":{
-        "login.token": "$body.token"
-      }
-    },
-    {
       "description": "create with validate user",
       "request": {
         "method": "post",
@@ -43,7 +20,34 @@
         }
       },
       "response": {
-        "status": 200
+        "status": 200,
+        "body": {
+          "username": "username_xx",
+          "email": "username_xx@gg.co"
+        }
+      },
+      "setParameters":{
+        "login.username": "$.body.username"
+      }
+    },
+    {
+      "description": "login",
+      "request": {
+        "method": "post",
+        "path": "/api/login",
+        "body": {
+          "userId": "",
+          "username": "$login.username$",
+          "password": "password",
+          "loginToken": ""
+        }
+      },
+      "response": {
+        "status": 200,
+        "body": {
+          "loginToken": "xxxyyy",
+          "username": "admin"
+        }
       }
     },
     {
