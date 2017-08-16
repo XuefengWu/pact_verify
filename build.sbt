@@ -9,7 +9,7 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 
 libraryDependencies ++= Seq(
   ("org.apache.httpcomponents" % "httpclient" % "4.5.3"),
-  ("org.apache.commons" % "commons-lang3" % "3.6"),
+  ( "com.jayway.jsonpath" % "json-path" % "2.2.0"),
   ("com.typesafe.play" %% "play-json" % "2.6.1").exclude("com.typesafe.play","build-link"),  
   ("org.scala-lang.modules" %% "scala-xml" % "1.0.5").exclude("commons-logging", "commons-logging"),
   ("org.scalactic" %% "scalactic" % "3.0.1" % "test"),

@@ -6,7 +6,7 @@ import play.api.libs.json.Json
 /**
   * Created by xfwu on 16/08/2017.
   */
-class JsonPathRulesSpec extends FlatSpec with Matchers {
+class JsonPathSpec extends FlatSpec with Matchers {
   "Matching Rule Select" should "find field" in {
     val result = JsonPath.select(body,"$.body.data.array1")
     val expected = body.\("data").\("array1")
@@ -29,6 +29,20 @@ class JsonPathRulesSpec extends FlatSpec with Matchers {
     val body = Json.parse("""[{"id":123}]""")
     val expected = body \ 0 \ "id"
     val result = JsonPath.select(body,"$.body[0].id")
+    result should be(expected)
+  }
+
+  it should "select element in boolean from root array" in {
+    val body = Json.parse("""[{"flag":true}]""")
+    val expected = body \ 0 \ "flag"
+    val result = JsonPath.select(body,"$.body[0].flag")
+    result should be(expected)
+  }
+
+  it should "select element in object from root array" in {
+    val body = Json.parse("""[{"user":{"name":"xfwu", "address":{"country":"China","city":"Shanghai"}, "scores":[115,101,120]}}]""")
+    val expected = body \ 0 \ "user"
+    val result = JsonPath.select(body,"$.body[0].user")
     result should be(expected)
   }
 

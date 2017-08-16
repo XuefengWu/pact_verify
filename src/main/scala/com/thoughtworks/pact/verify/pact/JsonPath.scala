@@ -1,8 +1,14 @@
 package com.thoughtworks.pact.verify.pact
 
-import org.apache.commons.logging.LogFactory
-import play.api.libs.json.{JsDefined, JsLookupResult, JsValue}
+import java.util.Date
 
+import org.apache.commons.logging.LogFactory
+import play.api.libs.json._
+import com.jayway.jsonpath
+import net.minidev.json.JSONArray
+import org.apache.commons.lang3.exception.ExceptionUtils
+
+import scala.util.{Failure, Success, Try}
 /**
   * Created by xfwu on 16/08/2017.
   */
@@ -11,46 +17,29 @@ object JsonPath {
   private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   def select(body: JsValue,selection: String): JsLookupResult = {
-    val path = selection.drop(6).dropWhile(_ == '.') //drop [$.body.]
-    logger.debug(s"select path=[$path]")
-    path.split("\\.").foldLeft[JsLookupResult](JsDefined(body))((acc, v) => {
-      acc match {
-        case JsDefined(o) => doSelect(o, v)
-        case f => f
-      }
-    })
+
+    val bodyStr = Json.stringify(JsObject(Seq(("body", body))))
+
+    val resultTr = Try(jsonpath.JsonPath.parse(bodyStr).read(selection, classOf[Object]))
+
+    val result = resultTr match {
+      case Success(v) =>  JsDefined(convertToJsValue(v))
+      case Failure(err) => JsUndefined(ExceptionUtils.getStackTrace(err))
+    }
+
+    result
   }
 
-  private def doSelect(node: JsValue, path: String): JsLookupResult = {
-    logger.debug(s"doSelect path=[$path]")
-    val res = parseFields(path).foldLeft[JsLookupResult](JsDefined(node))((acc, v) => {
-      acc match {
-        case JsDefined(o) =>
-          v match {
-            case f: String if f.isEmpty => acc
-            case f: String => acc \ f
-            case i: Int => acc \ i
-          }
-        case f => f
-      }
-    })
-    logger.debug(s"doSelect result=[$res]")
-    res
-  }
-
-
-  private def parseFields(path: String) = {
-    if (path.contains("[")) {
-      val fields = path.split("\\[").toSeq match {
-        case Seq(field, first) => Seq(field, first.dropRight(1).toInt)
-        case Seq(field, first, second) => Seq(field, first.dropRight(1).toInt, second.dropRight(1).toInt)
-      }
-      fields.filterNot({
-        case v: String => v.isEmpty
-        case _ => false
-      })
-    } else {
-      Seq(path)
+  private def convertToJsValue(o: Object):JsValue = {
+    o match {
+      case v: java.lang.Boolean => JsBoolean(v)
+      case v:Number => JsNumber(BigDecimal.valueOf(v.doubleValue()))
+      case v: String =>  JsString(v)
+      case v: JSONArray =>  Json.parse(v.toJSONString)
+      case map: java.util.LinkedHashMap[String,Object] =>
+        val sMap = scala.collection.JavaConverters.mapAsScalaMap(map)
+        sMap.foreach{case (k,v) => println(s"k=$k,v=${v} , ${v.getClass}")}
+        JsObject(sMap.map{case (k,v) => (k, convertToJsValue(v))})
     }
   }
 
