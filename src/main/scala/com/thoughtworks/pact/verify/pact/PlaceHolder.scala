@@ -1,5 +1,6 @@
 package com.thoughtworks.pact.verify.pact
 
+import org.apache.commons.logging.LogFactory
 import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue, Json}
 
 import scala.util.Try
@@ -9,6 +10,7 @@ import scala.util.Try
   */
 object PlaceHolder {
 
+  private val logger = LogFactory.getFactory.getInstance(this.getClass)
 
   private val PlaceHolderR = """"\$([a-zA-Z\.]+)\$"""".r
   private val PlaceHolderWithoutQuoR = """\$([a-zA-Z\.]+)\$""".r
@@ -29,10 +31,10 @@ object PlaceHolder {
         val placeJsValueOpt: Option[JsLookupResult] = parametersStack.get(placeId)
         if (placeJsValueOpt.isDefined && !placeJsValueOpt.get.isInstanceOf[JsUndefined]) {
           val placeValue = placeJsValueOpt.get.get.result.get.toString().drop(1).dropRight(1)
-          println(placeValue)
-          println(requestBufOpt)
+          logger.debug(placeValue)
+          logger.trace(requestBufOpt)
           requestBufOpt = requestBufOpt.map(requestBuf => requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue))
-          println(requestBufOpt)
+          logger.trace(requestBufOpt)
         }
       }
     }
@@ -44,7 +46,6 @@ object PlaceHolder {
         url = url.replaceAll("\\$" + placeId + "\\$", placeValue)
       }
     }
-
     request.copy(path = url, body = requestBufOpt.map(requestBuf => Json.parse(requestBuf)))
 
   }

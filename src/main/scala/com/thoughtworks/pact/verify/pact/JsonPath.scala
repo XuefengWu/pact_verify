@@ -37,8 +37,7 @@ object JsonPath {
       case v: String =>  JsString(v)
       case v: JSONArray =>  Json.parse(v.toJSONString)
       case map: java.util.LinkedHashMap[String,Object] =>
-        val sMap = scala.collection.JavaConverters.mapAsScalaMap(map)
-        sMap.foreach{case (k,v) => println(s"k=$k,v=${v} , ${v.getClass}")}
+        val sMap = scala.collection.JavaConverters.mapAsScalaMap(map)        
         JsObject(sMap.map{case (k,v) => (k, convertToJsValue(v))})
     }
   }

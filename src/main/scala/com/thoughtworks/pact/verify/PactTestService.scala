@@ -98,7 +98,7 @@ object PactTestService {
     val start = System.currentTimeMillis()
     val (successSeq, failurePactSeq) = pacts.pacts.partition(_.isSuccess)
     failurePactSeq.foreach(v => {
-      println(s"pares failed: ${pacts.name}\n")
+      logger.warn(s"pares failed: ${pacts.name}\n")
       v.failed.get.printStackTrace()
     }
     )
