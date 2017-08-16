@@ -14,7 +14,7 @@ class PlaceHolderSpec extends FlatSpec with Matchers {
                       "loginToken": "xxxyyy",
                       "username": "admin"
                     } """
-    val setParameters = Map("login.token" -> "$body.loginToken","login.username" -> "$body.username")
+    val setParameters = Map("login.token" -> "$.body.loginToken","login.username" -> "$.body.username")
     val parameters = PlaceHolder.getParameterFormBody(Json.parse(body),Some(setParameters))
     parameters should be(Map("login.token" -> JsDefined(JsString("xxxyyy")),"login.username" -> JsDefined(JsString("admin"))))
   }
