@@ -28,7 +28,8 @@ object PactFile {
     if (pacts.isEmpty) {
       subPacts
     } else {
-      subPacts :+ Pacts(s"${dir.getParentFile.getName}_${dir.getName}", pacts)
+      val pactsName = s"${Option(dir.getParentFile).map(_.getName + "_").getOrElse("")}${dir.getName}"
+      subPacts :+ Pacts(pactsName, pacts)
     }
   }
 
