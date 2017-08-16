@@ -3,8 +3,6 @@ package com.thoughtworks.pact.verify.pact
 import org.apache.commons.logging.LogFactory
 import play.api.libs.json.{JsLookupResult, JsUndefined, JsValue, Json}
 
-import scala.util.Try
-
 /**
   * Created by xfwu on 12/07/2017.
   */

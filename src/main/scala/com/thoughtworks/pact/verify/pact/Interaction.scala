@@ -2,7 +2,7 @@ package com.thoughtworks.pact.verify.pact
 
 import com.thoughtworks.pact.verify.junit.Failure
 import org.apache.commons.lang3.exception.ExceptionUtils
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 
 import scala.util.Success
 

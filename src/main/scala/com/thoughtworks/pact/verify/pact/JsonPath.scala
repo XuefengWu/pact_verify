@@ -1,12 +1,10 @@
 package com.thoughtworks.pact.verify.pact
 
-import java.util.Date
-
-import org.apache.commons.logging.LogFactory
-import play.api.libs.json._
 import com.jayway.jsonpath
 import net.minidev.json.JSONArray
 import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.commons.logging.LogFactory
+import play.api.libs.json._
 
 import scala.util.{Failure, Success, Try}
 /**
