@@ -1,6 +1,6 @@
 package com.thoughtworks.pact.verify.pact
 
-import play.api.libs.json.{JsUndefined, Json}
+import play.api.libs.json.{JsUndefined, JsValue, Json}
 
 import scala.util.Try
 
@@ -14,18 +14,18 @@ object PlaceHolder {
   private val PlaceHolderWithoutQuoR = """\$([a-zA-Z]+)\$""".r
 
 
-   def replacePlaceHolderParameter(request: PactRequest, responseOpt: Option[HttpResponse]): PactRequest = {
+   def replacePlaceHolderParameter(request: PactRequest, responseBodyOpt: Option[JsValue]): PactRequest = {
 
-    if (responseOpt.isDefined) {
-      val response = responseOpt.get
+    if (responseBodyOpt.isDefined) {
+      val responseBody = responseBodyOpt.get
       //parameters
       val body = request.body
       var requestBufOpt = body.map(_.toString())
       var url = request.path
-      if (Try(Json.parse(response.body)).isSuccess) {
+      if (Try(responseBody).isSuccess) {
         if (request.body.isDefined) {
           PlaceHolderR.findAllMatchIn(request.body.get.toString()).map { m => m.group(1) }.foreach { placeId =>
-            val placeJsValue = (Json.parse(response.body) \ placeId)
+            val placeJsValue = (responseBody \ placeId)
             if (!placeJsValue.isInstanceOf[JsUndefined]) {
               val placeValue = placeJsValue.toString().drop(1).dropRight(1)
               requestBufOpt = requestBufOpt.map(requestBuf => requestBuf.replaceAll("\\$" + placeId + "\\$", placeValue))
@@ -34,7 +34,7 @@ object PlaceHolder {
         }
 
         PlaceHolderWithoutQuoR.findAllMatchIn(request.path).map { m => m.group(1) }.foreach { placeId =>
-          val placeJsValue = (Json.parse(response.body) \ placeId)
+          val placeJsValue = (responseBody \ placeId)
           if (!placeJsValue.isInstanceOf[JsUndefined]) {
             val placeValue = placeJsValue.toString().drop(1).dropRight(1)
             url = url.replaceAll("\\$" + placeId + "\\$", placeValue)
