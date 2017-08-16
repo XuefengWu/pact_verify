@@ -5,8 +5,9 @@ import java.util.Date
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
 import org.apache.commons.logging.LogFactory
-import play.api.libs.json.Json
+import play.api.libs.json.{JsLookupResult, Json}
 
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, MINUTES}
 import scala.concurrent.{Await, Future}
@@ -21,19 +22,18 @@ object PactTestService {
   private def testPact(pactWS: PactWS, pact: Pact): TestSuite = {
     val startPact = System.currentTimeMillis()
 
-    var preResponseOpt: Option[HttpResponse] = None
+    val parametersStack = mutable.HashMap[String,JsLookupResult]()
+
     var preCookiesOpt: Option[Seq[String]] = None
 
-    def setForNextRequest(actual: HttpResponse) = {
+    def setForNextRequest(actual: HttpResponse,interaction: Interaction) = {
       if (actual.status < 400) {
-        preResponseOpt = Some(actual)
+        parametersStack ++= PlaceHolder.getParameterFormBody(Json.parse(actual.body),interaction.setParameters)
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
           //println(s"SetCookies: ${cookies.mkString(";")}")
           preCookiesOpt = Some(cookies)
         }
-      } else {
-        preResponseOpt = None
       }
     }
 
@@ -43,14 +43,14 @@ object PactTestService {
     } yield {
       val start = System.currentTimeMillis()
       //创建参数，参数的连续使用
-      val request: PactRequest = PlaceHolder.replacePlaceHolderParameter(interaction.request, preResponseOpt.map(v => Json.parse(v.body)))
+      val request: PactRequest = PlaceHolder.replacePlaceHolderParameter(interaction.request, parametersStack.toMap)
       logger.trace(s"${interaction.description}")
       val mergedRequest = mergeCookie(request, preCookiesOpt, pact.cookies)
       val actualTry = pactWS.send(mergedRequest)
 
       val (error, failure) = actualTry match {
         case Success(actual) =>
-          setForNextRequest(actual)
+          setForNextRequest(actual,interaction)
           val error = if (actual.status >= 500)
                           Some(Error(s"status code error", s"status code error: ${actual.status}", Some(s"reason: ${actual.statusText}, body:${actual.body}")))
                       else None

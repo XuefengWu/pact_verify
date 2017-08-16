@@ -10,7 +10,8 @@ import scala.util.Success
   */
 case class Interaction(description: String,
                        request: PactRequest,
-                       response: PactResponse) {
+                       response: PactResponse,
+                       setParameters: Option[Map[String,String]] = None) {
 
   def assert(request: PactRequest, actual: HttpResponse): Option[Failure] = {
     val expect = this.response
