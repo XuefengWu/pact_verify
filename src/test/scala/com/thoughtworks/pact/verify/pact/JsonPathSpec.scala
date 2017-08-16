@@ -46,6 +46,13 @@ class JsonPathSpec extends FlatSpec with Matchers {
     result should be(expected)
   }
 
+  it should "select element in array object from root array" in {
+    val body = Json.parse("""[{"users":[{"name":"xfwu", "scores":[115,101,120]}]}]""")
+    val expected = body \ 0 \ "users"
+    val result = JsonPath.select(body,"$.body[0].users")
+    result should be(expected)
+  }
+
   private val body = {
     val bodyStr =
       """
