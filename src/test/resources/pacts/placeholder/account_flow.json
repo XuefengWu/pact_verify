@@ -9,18 +9,6 @@
   "cookies": "user=1",
   "interactions": [
     {
-      "description": "www.baidu.com",
-      "request": {
-        "method": "post",
-        "path": "http://www.baidu.com/ur/submit/urreward",
-        "form": "bsToken=8d7edb42d0bae0e8b9b0c67ef9264986&asyn=1&info=pid%3Dse%26method%3Dsearch%26query%3Dfffffff&se=utf-8&ge=utf-8"
-      },
-      "response": {
-        "status": 200,
-        "body":{}
-      }
-    },
-    {
       "description": "login",
       "request": {
         "method": "post",
@@ -33,7 +21,14 @@
         }
       },
       "response": {
-        "status": 200
+        "status": 200,
+        "body": {
+          "loginToken": "xxxyyy",
+          "username": "admin"
+        }
+      },
+      "setParameters":{
+        "login.token": "$body.token"
       }
     },
     {
