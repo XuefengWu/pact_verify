@@ -11,7 +11,7 @@ import org.apache.commons.logging.impl.LogFactoryImpl
   */
 object Main extends App {
 
-  println("welcome play pact v0.4.0")
+  println("welcome play pact v0.9.4")
   val start = System.currentTimeMillis()
 
   val root = if (args.length < 1) {
