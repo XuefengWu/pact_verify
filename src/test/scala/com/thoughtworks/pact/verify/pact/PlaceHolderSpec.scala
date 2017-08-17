@@ -20,8 +20,8 @@ class PlaceHolderSpec extends FlatSpec with Matchers {
 
   }
 
-  "Place Holder" should "calculate parameter from body by setParameter rule" in {
-  /*
+  it should "calculate number parameter from body by setParameter rule" in {
+
     val body = """ {
                       "a": 1,
                       "b": 2
@@ -29,10 +29,22 @@ class PlaceHolderSpec extends FlatSpec with Matchers {
     val setParameters = Map("a" -> "$.body.a","b" -> "$.body.b","c" -> "$a$+$b$")
     val parameters = PlaceHolder.getParameterFormBody(Json.parse(body),Some(setParameters),Map[String, JsLookupResult]())
     parameters should be(Map("a" -> JsDefined(JsNumber(1)),"b" -> JsDefined(JsNumber(2)),"c" -> JsDefined(JsNumber(3))))
-    */
+
   }
 
-  "Place Holder" should "replace parameter by setParameterStack success" in {
+  it should "calculate String parameter from body by setParameter rule" in {
+
+    val body = """ {
+                      "a": "hello",
+                      "b": "world"
+                    } """
+    val setParameters = Map("a" -> "$.body.a","b" -> "$.body.b","c" -> "$a$ + $b$")
+    val parameters = PlaceHolder.getParameterFormBody(Json.parse(body),Some(setParameters),Map[String, JsLookupResult]())
+    parameters should be(Map("a" -> JsDefined(JsString("hello")),"b" -> JsDefined(JsString("world")),"c" -> JsDefined(JsString("hello  world"))))
+
+  }
+
+  it should "replace parameter by setParameterStack success" in {
     val parameterStack = Map("login.token" -> JsDefined(JsString("xxxyyy")),"login.username" -> JsDefined(JsString("admin")))
     val body = Json.parse("""{"loginToken":"$login.token$"}""")
     val request: PactRequest = PactRequest("post","/user/$login.username$",None,Some(body),None,None,None)

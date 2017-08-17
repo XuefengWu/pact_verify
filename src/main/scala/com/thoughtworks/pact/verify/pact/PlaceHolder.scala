@@ -3,6 +3,8 @@ package com.thoughtworks.pact.verify.pact
 import org.apache.commons.logging.LogFactory
 import play.api.libs.json._
 
+import scala.util.{Failure, Success, Try}
+
 /**
   * Created by xfwu on 12/07/2017.
   */
@@ -30,14 +32,18 @@ object PlaceHolder {
   private def calcParameter(rawEval:String, parameterStack: Map[String, JsLookupResult]): JsValue = {
     val eval = relacePlaceHolder(rawEval, parameterStack)
     logger.debug(s"rawEval: $rawEval, eval: $eval, parameterStack:$parameterStack")
-    val res:Object = ""
-
-    res match {
-      case v: Number => JsNumber(BigDecimal.valueOf(v.doubleValue()))
-      case v: String => JsString(v)
+    println((s"rawEval: $rawEval, eval: $eval, parameterStack:$parameterStack"))
+    val tokens = eval.split("\\+").toSeq
+    val tokenNumbersTry = Try(tokens.map(_.trim.toDouble))
+    tokenNumbersTry match {
+      case Success(numberTokens) => JsNumber(plusNumbers(numberTokens))
+      case _ => JsString(concatString(tokens))
     }
   }
 
+  private def plusNumbers(tokens: Seq[Double]):BigDecimal = tokens.reduce(_+_)
+
+  private def concatString(tokens: Seq[String]):String = tokens.reduce(_+_)
 
   private def relacePlaceHolder(raw: String, parametersStack: Map[String, JsLookupResult]): String = {
     var temp = raw
