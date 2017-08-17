@@ -1,4 +1,4 @@
-package com.thoughtworks.pact.verify.pact
+package com.thoughtworks.pact.verify.json
 
 import org.apache.commons.logging.LogFactory
 import play.api.libs.json._

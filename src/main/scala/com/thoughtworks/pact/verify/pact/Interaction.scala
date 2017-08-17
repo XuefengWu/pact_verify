@@ -1,5 +1,6 @@
 package com.thoughtworks.pact.verify.pact
 
+import com.thoughtworks.pact.verify.json.ResponseBodyJson
 import com.thoughtworks.pact.verify.junit.Failure
 import org.apache.commons.lang3.exception.ExceptionUtils
 import play.api.libs.json.Json

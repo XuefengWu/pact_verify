@@ -1,5 +1,6 @@
 package com.thoughtworks.pact.verify.pact
 
+import com.thoughtworks.pact.verify.json.ResponseBodyJson
 import play.api.libs.json.{JsArray, JsObject, JsValue}
 
 /**

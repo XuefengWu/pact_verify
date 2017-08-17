@@ -1,8 +1,8 @@
-package com.thoughtworks.pact.verify.pact
+package com.thoughtworks.pact.verify.json
 
+import com.thoughtworks.pact.verify.pact.PactRequest
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json._
-import scala.reflect.runtime.currentMirror
 /**
   * Created by xfwu on 16/08/2017.
   */

@@ -1,5 +1,6 @@
 package com.thoughtworks.pact.verify.pact
 
+import com.thoughtworks.pact.verify.json.JsonPath
 import org.apache.commons.logging.LogFactory
 import org.apache.commons.logging.impl.LogFactoryImpl
 import org.scalatest.{FlatSpec, Matchers}

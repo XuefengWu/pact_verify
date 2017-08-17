@@ -1,4 +1,4 @@
-package com.thoughtworks.pact.verify.pact
+package com.thoughtworks.pact.verify.json
 
 import com.jayway.jsonpath
 import net.minidev.json.JSONArray

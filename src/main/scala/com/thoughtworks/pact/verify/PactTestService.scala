@@ -2,6 +2,7 @@ package com.thoughtworks.pact.verify
 
 import java.util.Date
 
+import com.thoughtworks.pact.verify.json.PlaceHolder
 import com.thoughtworks.pact.verify.junit.{Error, TestCase, TestSuite, TestSuites}
 import com.thoughtworks.pact.verify.pact._
 import org.apache.commons.lang3.exception.ExceptionUtils

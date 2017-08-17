@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.regex.Pattern
 
+import com.thoughtworks.pact.verify.json.JsonPath
 import org.apache.commons.logging.LogFactory
 import play.api.libs.json._
 

@@ -1,4 +1,4 @@
-package com.thoughtworks.pact.verify.pact
+package com.thoughtworks.pact.verify.json
 
 import org.scalatest.{FlatSpec, Matchers}
 import play.api.libs.json.Json

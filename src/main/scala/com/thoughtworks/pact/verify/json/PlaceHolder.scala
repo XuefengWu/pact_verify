@@ -1,9 +1,10 @@
-package com.thoughtworks.pact.verify.pact
+package com.thoughtworks.pact.verify.json
 
+import com.thoughtworks.pact.verify.pact.PactRequest
 import org.apache.commons.logging.LogFactory
 import play.api.libs.json._
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{Success, Try}
 
 /**
   * Created by xfwu on 12/07/2017.
