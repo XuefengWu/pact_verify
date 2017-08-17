@@ -1,6 +1,6 @@
 {
   "provider": {
-    "name": "login Service"
+    "name": "account Service"
   },
   "consumer": {
     "name": "test_consumer"
