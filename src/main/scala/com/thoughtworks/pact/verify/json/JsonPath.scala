@@ -37,6 +37,9 @@ object JsonPath {
       case map: java.util.LinkedHashMap[String,Object] =>
         val sMap = scala.collection.JavaConverters.mapAsScalaMap(map)        
         JsObject(sMap.map{case (k,v) => (k, convertToJsValue(v))})
+      case _ =>
+        logger.warn("can not convert: " + o)
+        JsNull
     }
   }
 
