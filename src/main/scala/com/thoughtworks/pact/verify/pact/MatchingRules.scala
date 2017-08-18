@@ -89,7 +89,7 @@ case class MatchingRule(selection: String, matcherType: String, expression: Stri
     val actualArray = actual.asInstanceOf[JsArray]
     val expectedFieldExpectedArray = expectedFieldExpectedValue.asInstanceOf[JsArray]
     actualArray \ 0 match {
-      case JsDefined(array) => isCustomerTypeFieldMath(array, (expectedFieldExpectedArray \ 0).get)
+      case JsDefined(array) => isCustomerTypeFieldMath(array, (expectedFieldExpectedArray \ 0).getOrElse(JsNull))
       case err => None
     }
   }
