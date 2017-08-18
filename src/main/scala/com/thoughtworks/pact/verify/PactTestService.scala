@@ -13,7 +13,7 @@ import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.{Duration, MINUTES}
 import scala.concurrent.{Await, Future}
-import scala.util.Success
+import scala.util.{Success, Try}
 
 /**
   * Created by xfwu on 12/07/2017.
@@ -30,7 +30,11 @@ object PactTestService {
 
     def setForNextRequest(actual: HttpResponse,interaction: Interaction) = {
       if (actual.status < 400) {
-        parametersStack ++= PlaceHolder.getParameterFormBody(Json.parse(actual.body),interaction.setParameters,parametersStack.toMap)
+        Try(Json.parse(actual.body)) match {
+          case Success(body) => parametersStack ++= PlaceHolder.getParameterFormBody(body,interaction.setParameters,parametersStack.toMap)
+          case _ => logger.error(actual.body)
+        }
+
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
           //println(s"SetCookies: ${cookies.mkString(";")}")
