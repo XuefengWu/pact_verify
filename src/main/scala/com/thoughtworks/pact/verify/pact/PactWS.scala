@@ -40,6 +40,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
   private def sendRequest(request: PactRequest): (Future[Try[CloseableHttpResponse]],CloseableHttpClient) = {
     val method = buildRequest(request.path, buildRequestBody(request),
       request.method.toString(), request.contentType, request.cookies, request.form)
+    logger.trace(s"request cookies: ${request.cookies}")
     val httpClient: CloseableHttpClient = HttpClients.createDefault()
     httpCLients += httpClient
     (Future(Try(httpClient.execute(method))),httpClient)
@@ -47,6 +48,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
 
   private def setCookie(request: HttpRequestBase, cookies: Option[String]): HttpRequestBase = {
     cookies.foreach(c => request.setHeader("Set-Cookie", c))
+    cookies.foreach(c => request.setHeader("Cookie", c))
     request
   }
 
@@ -138,7 +140,11 @@ class PactWSImpl(urlRoot: String) extends PactWS {
 
     override val statusText: String = response.getStatusLine.getReasonPhrase
 
-    override val cookies: Seq[HttpCookie] = response.getHeaders("Set-Cookie").toSeq.map(h => HttpCookie(h.getName,h.getValue))
+    override val cookies: Seq[HttpCookie] = {
+      response.getAllHeaders.toSeq.foreach(v => logger.trace(s"${v.getName} = ${v.getValue}"))
+      logger.trace(s"Response Cookie: ${response.getHeaders("Set-Cookie").length}: ${response.getHeaders("Set-Cookie").toSeq.map(v => s"${v.getName} ,, ${v.getValue}")}")
+      response.getHeaders("Set-Cookie").headOption.map(_.getValue.split(";").toSeq.map(v => {HttpCookie(v.split("=")(0),v.split("=")(1))})).getOrElse(Nil)
+    }
   }
 
   def close(): Unit = {

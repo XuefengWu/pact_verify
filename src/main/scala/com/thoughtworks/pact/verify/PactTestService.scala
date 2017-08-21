@@ -35,11 +35,14 @@ object PactTestService {
           case _ => logger.error(actual.body)
         }
 
+        logger.trace(s"actual.cookies: ${actual.cookies}")
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
-          //  println(s"SetCookies: ${cookies.mkString(";")}")
+          logger.trace(s"cookies.size: ${actual.cookies.size}, SetCookies: ${cookies.mkString(";")}")
           preCookiesOpt = Some(cookies)
         }
+      } else {
+        logger.error(s"actual.status: ${actual.status}")
       }
     }
 
@@ -62,6 +65,7 @@ object PactTestService {
           val error = if (actual.status >= 500)
                           Some(Error(s"status code error", s"status code error: ${actual.status}", Some(s"reason: ${actual.statusText}, body:${actual.body}")))
                       else None
+          logger.trace(s"actual.body: ${actual.body}")
           val failure = interaction.assert(request, actual)
           (error, failure)
         case scala.util.Failure(e) =>
