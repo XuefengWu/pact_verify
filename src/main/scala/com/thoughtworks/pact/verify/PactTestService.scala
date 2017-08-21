@@ -55,6 +55,7 @@ object PactTestService {
       val request: PactRequest = PlaceHolder.replacePlaceHolderParameter(interaction.request, parametersStack.toMap)
       logger.trace(s"${interaction.description}")
       val mergedRequest = mergeCookie(request, preCookiesOpt, pact.cookies)
+      println(s"execute ${interaction.description}, url: ${request.path}")
       val actualTry = pactWS.send(mergedRequest)
 
       val (error, failure) = actualTry match {
