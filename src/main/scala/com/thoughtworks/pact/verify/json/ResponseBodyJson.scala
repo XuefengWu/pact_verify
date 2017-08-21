@@ -42,7 +42,7 @@ object ResponseBodyJson {
   }
 
   private def hardParseStringAsJsObject(jsString: JsString): Try[JsValue] = {
-    logger.trace(s"hardParseStringAsJsObject: [$jsString]")
+    //logger.trace(s"hardParseStringAsJsObject: [$jsString]")
     val jsValueTry = Try(Json.parse(jsString.value))
     jsValueTry.fold(_ => Success(jsString),
       jsValue => jsValue match {
