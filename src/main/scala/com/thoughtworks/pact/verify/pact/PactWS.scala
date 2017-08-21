@@ -120,7 +120,7 @@ class PactWSImpl(urlRoot: String) extends PactWS {
   override def send(request: PactRequest): Try[HttpResponse] = {
     val (responseF: Future[Try[CloseableHttpResponse]],client:CloseableHttpClient) = sendRequest(request)
     val triedResponse = Try(Await.result(responseF.map(_.map(res => buildHttpResponse(res, request))),
-                                          Duration(request.timeout.getOrElse(90), SECONDS))).flatten
+                                          Duration(request.timeout.getOrElse(120), SECONDS))).flatten
     triedResponse.recover{case error: Throwable => {
                       logger.error(error.getMessage, error)
                       httpCLients -= client

@@ -37,7 +37,7 @@ object PactTestService {
 
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
-          //println(s"SetCookies: ${cookies.mkString(";")}")
+          //  println(s"SetCookies: ${cookies.mkString(";")}")
           preCookiesOpt = Some(cookies)
         }
       }
@@ -123,7 +123,7 @@ object PactTestService {
 
   private def parseSuccesses(pactWS: PactWS, pactSeq: Seq[Pact]): Seq[TestSuite] = {
     val verifyResults: Seq[Future[TestSuite]] = pactSeq.map(v => Future(testPact(pactWS, v)))
-    Await.result(Future.sequence(verifyResults), Duration(15,MINUTES))
+    Await.result(Future.sequence(verifyResults), Duration(150,MINUTES))
   }
 
   private def parseFailures(name: String, fails: Seq[Throwable]): TestSuite = {
