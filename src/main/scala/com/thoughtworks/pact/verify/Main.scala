@@ -69,5 +69,5 @@ object Main extends App {
     println(s"\n${ts.name}::${tc.name} \n ${fail.message}")
   }
   JunitReport.dumpJUnitReport(reportDirPath, pactFs)
-  println("dump report finished, finished: spend: ${(System.currentTimeMillis() - start)/1000} s")
+  println(s"dump report finished, finished: spend: ${(System.currentTimeMillis() - start)/1000} s")
 }
