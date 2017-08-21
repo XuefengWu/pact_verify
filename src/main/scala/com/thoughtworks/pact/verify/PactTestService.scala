@@ -38,7 +38,7 @@ object PactTestService {
         logger.trace(s"actual.cookies: ${actual.cookies}")
         if (actual.cookies.size > 0) {
           val cookies: Seq[String] = actual.cookies.map(c => s"${c.name}=${c.value}")
-          logger.trace(s"cookies.size: ${actual.cookies.size}, SetCookies: ${cookies.mkString(";")}")
+          logger.trace(s"SetCookies: ${cookies.mkString(";")}")
           preCookiesOpt = Some(cookies)
         }
       } else {

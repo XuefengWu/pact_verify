@@ -10,7 +10,7 @@ import org.apache.http.entity.StringEntity
 import org.apache.http.impl.client.{CloseableHttpClient, HttpClients}
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.util.EntityUtils
-import org.apache.http.{Consts, NameValuePair}
+import org.apache.http.{Consts, Header, NameValuePair}
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -141,11 +141,21 @@ class PactWSImpl(urlRoot: String) extends PactWS {
     override val statusText: String = response.getStatusLine.getReasonPhrase
 
     override val cookies: Seq[HttpCookie] = {
-      response.getAllHeaders.toSeq.foreach(v => logger.trace(s"${v.getName} = ${v.getValue}"))
-      logger.trace(s"Response Cookie: ${response.getHeaders("Set-Cookie").length}: ${response.getHeaders("Set-Cookie").toSeq.map(v => s"${v.getName} ,, ${v.getValue}")}")
-      response.getHeaders("Set-Cookie").headOption.map(_.getValue.split(";").toSeq.map(v => {HttpCookie(v.split("=")(0),v.split("=")(1))})).getOrElse(Nil)
+      val res: Seq[Option[HttpCookie]] = response.getHeaders("Set-Cookie").map(_.getValue).map(buildHttpCookie)
+      res.filter(_.isDefined).map(_.get)
+    }
+
+    private def buildHttpCookie(v: String): Option[HttpCookie] = {
+      logger.trace(s"buildHttpCookie: $v")
+      val kv = v.split("=")
+      if(kv.length > 1) {
+        Some(HttpCookie(kv(0).trim, kv(1).trim))
+      } else {
+        None
+      }
     }
   }
+
 
   def close(): Unit = {
     httpCLients.foreach(_.close())
